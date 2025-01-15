@@ -20,6 +20,8 @@ setup(
         "numpy", 
         "scipy",
         "pandas",
-        "matplotlib"
+        "matplotlib",
+        "ipykernel",
+        "scikit-learn"
     ],
 )
