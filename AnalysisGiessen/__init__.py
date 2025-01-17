@@ -77,6 +77,11 @@ class analyseGiessen:
         a_epad_ind, _ = find_peaks(-self._df['dpdt'], height=height, distance=100)
         self._points_df['a_epad_ind'] = a_epad_ind.astype(int)
         
+        if not use_filter: 
+            pressure = self._df['Pressure'].values.copy()
+        else:
+            pressure = self._df['fcPressure'].values.copy()
+        
         epad_ind = np.zeros(a_epad_ind.shape, dtype=int)
         dia_ind  = np.zeros(a_epad_ind.shape, dtype=int)
         sys_ind  = np.zeros(a_epad_ind.shape, dtype=int)
@@ -92,7 +97,7 @@ class analyseGiessen:
                 epad_ind[i] = a_epad + temp
                             
             # Compute dia
-            temp = np.where(self._df['dpdt'][a_epad:a_epad_ind[i+1]] >= 0.0)
+            temp = np.where(self._df['dpdt'][a_epad:a_epad_ind[i+1]] >= 0.0 & pressure[a_epad:a_epad_ind[i+1]] <= pressure[a_epad:a_epad_ind[i+1]].min() + 10.)
             dia_ind[i] = int(temp[0][0]) + a_epad
             
             # Compute sys
@@ -118,10 +123,7 @@ class analyseGiessen:
         del self._points_df
         self._points_df = temp
         
-        if not use_filter: 
-            pressure = self._df['Pressure'].values.copy()
-        else:
-            pressure = self._df['fcPressure'].values.copy()
+        
         self._points_df['a_epad']  = pressure[self._points_df['a_epad_ind'].values.astype(int)]
         self._points_df['epad']    = pressure[self._points_df['epad_ind'].values.astype(int)]
         
