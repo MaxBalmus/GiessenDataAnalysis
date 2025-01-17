@@ -89,7 +89,7 @@ class analyseGiessen:
             try:
                 epad_ind[i] = int(temp[0]) + a_epad
             except:
-                epad_ind[i] = a_epad
+                epad_ind[i] = a_epad + temp
                             
             # Compute dia
             temp = np.where(self._df['dpdt'][a_epad:a_epad_ind[i+1]] >= 0.0)
