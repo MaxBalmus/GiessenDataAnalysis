@@ -10,13 +10,19 @@ import os
 
 
 class analyseGiessen:
-    def __init__(self, file):
-        self._file = os.path.join('CohortDataRaw', file)
-        self._date = self._file.split('/')[2]
+    def __init__(self, file=None, df=None):
+        assert not ((file is None) and (df is None)) , "Either file or df need to be nonzero"
         
-        self._df = pd.read_csv(self._file, on_bad_lines='skip', index_col='Zeit')
-        self._df.index = self._df.apply(lambda line : self._date + ' ' +  line.name, axis=1)
-        self._df.index = pd.to_datetime(self._df.index, format='%Y-%m-%d %H:%M:%S:%f')
+        if file is not None:
+            self._file = os.path.join('CohortDataRaw', file)
+            self._date = self._file.split('/')[2]
+            
+            self._df = pd.read_csv(self._file, on_bad_lines='skip', index_col='Zeit')
+            self._df.index = self._df.apply(lambda line : self._date + ' ' +  line.name, axis=1)
+            self._df.index = pd.to_datetime(self._df.index, format='%Y-%m-%d %H:%M:%S:%f')
+            
+        else:
+            self._df = df.copy()
         
         self._t_resolution = 0.004
         
