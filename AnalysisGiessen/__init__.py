@@ -53,7 +53,7 @@ class analyseGiessen:
         self._df['dpdt'] = (
                             gaussian_filter1d(self._df['fcPressure'].values - np.roll(self._df['fcPressure'].values, shift=1), sigma=self._sigma_filter_dpdt) / self._t_resolution 
                             if use_filter else
-                            (np.roll(self._df['Pressure'].values, shift=-1) - np.roll(self._df['Pressure'].values, shift=1))
+                            (np.roll(self._df['Pressure'].values, shift=-1) - np.roll(self._df['Pressure'].values, shift=1)/ self._t_resolution / 2.0)
                             )
         
         self._sigma_filter_d2pdt2 = 2 # Orig (2), Other: 1 
