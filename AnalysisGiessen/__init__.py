@@ -140,7 +140,7 @@ class analyseGiessen:
         self._points_df.loc[0, 'iT'] = 0
         #####################################
         self._points_df['iHR']      = 60. / self._points_df['iT']
-        self._points_df.loc[0, 'IHR'] = 0
+        self._points_df.loc[0, 'iHR'] = 0
         
         return
         
