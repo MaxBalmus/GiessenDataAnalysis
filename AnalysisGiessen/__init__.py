@@ -84,7 +84,8 @@ class analyseGiessen:
         
         for i, a_epad in enumerate(a_epad_ind[:-1]):
             # Compute epad
-            temp, _ = find_peaks(self._df['dpdt'][a_epad:a_epad_ind[i+1]], height=height)
+            # temp, _ = find_peaks(self._df['dpdt'][a_epad:a_epad_ind[i+1]], height=height)
+            temp = np.argmax(self._df['dpdt'][a_epad:a_epad_ind[i+1]])
             try:
                 epad_ind[i] = int(temp[0]) + a_epad
             except:
