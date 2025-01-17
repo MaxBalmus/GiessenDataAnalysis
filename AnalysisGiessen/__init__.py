@@ -41,7 +41,7 @@ class analyseGiessen:
     def points_df(self):
         return self._points_df.copy()
     
-    def compute_derivatives(self):
+    def compute_derivatives(self, use_filter=True):
         self._sigma_filter_pressure = 6. # Orig (10.), Other: 
         self._df['fPressure'] = gaussian_filter1d(input=self.df['Pressure'].values, 
                                             sigma=self._sigma_filter_pressure)
@@ -50,13 +50,21 @@ class analyseGiessen:
                                             sigma=self._sigma_filter_pressure)
         
         self._sigma_filter_dpdt = 4
-        self._df['dpdt'] = gaussian_filter1d(self._df['fcPressure'].values - np.roll(self._df['fcPressure'].values, shift=1), sigma=self._sigma_filter_dpdt) / self._t_resolution
+        self._df['dpdt'] = (
+                            gaussian_filter1d(self._df['fcPressure'].values - np.roll(self._df['fcPressure'].values, shift=1), sigma=self._sigma_filter_dpdt) / self._t_resolution 
+                            if use_filter else
+                            (np.roll(self._df['Pressure'].values, shift=-1) - np.roll(self._df['Pressure'].values, shift=1))
+                            )
         
         self._sigma_filter_d2pdt2 = 2 # Orig (2), Other: 1 
-        self._df['d2pdt2'] = gaussian_filter1d(
-            (np.roll(self._df['fcPressure'].values, shift=-1) - 2.0 * self._df['fcPressure'].values + np.roll(self._df['fcPressure'].values, shift=1)) / self._t_resolution / self._t_resolution,
-            sigma = self._sigma_filter_d2pdt2
-        )
+        self._df['d2pdt2'] = (
+                            gaussian_filter1d(
+                                            (np.roll(self._df['fcPressure'].values, shift=-1) - 2.0 * self._df['fcPressure'].values + np.roll(self._df['fcPressure'].values, shift=1)) / self._t_resolution / self._t_resolution,
+                                            sigma = self._sigma_filter_d2pdt2
+                                            )
+                              if use_filter else
+                                (np.roll(self._df['Pressure'].values, shift=-1) - 2.0 * self._df['Pressure'].values + np.roll(self._df['Pressure'].values, shift=1)) / self._t_resolution / self._t_resolution
+                              )
         
         return
         
