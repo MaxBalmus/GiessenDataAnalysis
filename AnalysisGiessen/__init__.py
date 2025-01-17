@@ -10,7 +10,7 @@ import os
 
 
 class analyseGiessen:
-    def __init__(self, file=None, df=None):
+    def __init__(self, file=None, df=None, t_resolution=None):
         assert not ((file is None) and (df is None)) , "Either file or df need to be nonzero"
         
         if file is not None:
@@ -24,7 +24,7 @@ class analyseGiessen:
         else:
             self._df = df.copy()
         
-        self._t_resolution = 0.004
+        self._t_resolution = 0.004 if t_resolution is None else t_resolution
         
         self._df['Pressure'] = self._df['Druck [dezi mmHg]'] / 10.
         self._df['cPressure'] = self._df['Druck kompensiert [dezi mmHg]'] / 10.
