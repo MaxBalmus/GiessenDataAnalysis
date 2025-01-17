@@ -74,7 +74,9 @@ class analyseGiessen:
     
     def compute_points_of_interest(self, height=100, use_filter=True):
         # Compute anti-epad: the minimum dpdt 
-        a_epad_ind, _ = find_peaks(-self._df['dpdt'], height=height, distance=100)
+        a_epad_ind, _ = find_peaks(gaussian_filter1d(-self._df['dpdt'].values, sigma=4), 
+                                   height=height, 
+                                   distance=100)
         self._points_df['a_epad_ind'] = a_epad_ind.astype(int)
         
         if not use_filter: 
