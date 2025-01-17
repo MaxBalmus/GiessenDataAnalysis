@@ -118,7 +118,10 @@ class analyseGiessen:
             try:
                 esp_ind[i] = temp[0] + sys_ind[i]
             except:
-                esp_ind[i] = temp    + sys_ind[i]
+                try:
+                    esp_ind[i] = temp  + sys_ind[i]
+                except:
+                    esp_ind[i] = sys_ind[i]
             
         self._points_df['epad_ind'] = epad_ind
         self._points_df['dia_ind']  = dia_ind
