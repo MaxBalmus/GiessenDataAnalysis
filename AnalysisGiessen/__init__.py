@@ -72,9 +72,9 @@ class analyseGiessen:
         print(f"Percentage error: {self._df['Error'].sum() / len(self._df) * 100.:.2f}%")
         return
     
-    def compute_points_of_interest(self):
+    def compute_points_of_interest(self, height=100):
         # Compute anti-epad: the minimum dpdt 
-        a_epad_ind, _ = find_peaks(-self._df['dpdt'], height=100., distance=100)
+        a_epad_ind, _ = find_peaks(-self._df['dpdt'], height=height, distance=100)
         self._points_df['a_epad_ind'] = a_epad_ind.astype(int)
         
         epad_ind = np.zeros(a_epad_ind.shape, dtype=int)
@@ -84,7 +84,7 @@ class analyseGiessen:
         
         for i, a_epad in enumerate(a_epad_ind[:-1]):
             # Compute epad
-            temp, _ = find_peaks(self._df['dpdt'][a_epad:a_epad_ind[i+1]], height=200)
+            temp, _ = find_peaks(self._df['dpdt'][a_epad:a_epad_ind[i+1]], height=height)
             try:
                 epad_ind[i] = int(temp[0]) + a_epad
             except:
