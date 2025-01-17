@@ -58,7 +58,6 @@ class analyseGiessen:
             sigma = self._sigma_filter_d2pdt2
         )
         
-        self._df['Acc'] = (self._df['ACC x [centi g]']**2.0 + self._df['ACC y [centi g]']**2.0 + self._df['ACC z [centi g]']**2.0) ** 0.5 / 100
         return
         
     def report_error_percentate(self):
@@ -252,7 +251,8 @@ class analyseGiessen:
         ax3_2.set_ylabel('HR [beats/min]', color='tab:red')
         
         ax[3].legend()
-        # ax3_2.legend()
+        
+        self._df['Acc'] = (self._df['ACC x [centi g]']**2.0 + self._df['ACC y [centi g]']**2.0 + self._df['ACC z [centi g]']**2.0) ** 0.5 / 100.
         
         ax[4].plot(self._df.index, self._df['Acc'], label='iT')
         ax[4].set_xlim([self._df.index[0], self._df.index[-1]])
