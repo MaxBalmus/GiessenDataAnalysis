@@ -131,7 +131,10 @@ class analyseGiessen:
         self._points_df['a_epad']  = pressure[self._points_df['a_epad_ind'].values.astype(int)]
         self._points_df['epad']    = pressure[self._points_df['epad_ind'].values.astype(int)]
         
-        self._points_df['s_a_epad']= pressure[self._points_df['a_epad_ind'].values.astype(int) + 3]
+        try:
+            self._points_df['s_a_epad']= pressure[self._points_df['a_epad_ind'].values.astype(int) + 3]
+        except:
+            self._points_df['s_a_epad']= np.nan
         self._points_df['s_epad']  = pressure[self._points_df['epad_ind'].values.astype(int) - 3]
         
         self._points_df['a_alpha'] = (self._points_df['s_a_epad'] - self._points_df['a_epad']) / 3.
