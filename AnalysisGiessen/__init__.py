@@ -21,15 +21,14 @@ class analyseGiessen:
             self._df.index = self._df.apply(lambda line : self._date + ' ' +  line.name, axis=1)
             self._df.index = pd.to_datetime(self._df.index, format='%Y-%m-%d %H:%M:%S:%f')
             
+            self._df['Pressure'] = self._df['Druck [dezi mmHg]'] / 10.
+            self._df['cPressure'] = self._df['Druck kompensiert [dezi mmHg]'] / 10.
+            
+            self._df.drop(['Druck [dezi mmHg]', 'Druck kompensiert [dezi mmHg]'], axis=1, inplace=True)
         else:
             self._df = df.copy()
         
         self._t_resolution = 0.004 if t_resolution is None else t_resolution
-        
-        self._df['Pressure'] = self._df['Druck [dezi mmHg]'] / 10.
-        self._df['cPressure'] = self._df['Druck kompensiert [dezi mmHg]'] / 10.
-        
-        self._df.drop(['Druck [dezi mmHg]', 'Druck kompensiert [dezi mmHg]'], axis=1, inplace=True)
         
         self._points_df = pd.DataFrame()
         return
