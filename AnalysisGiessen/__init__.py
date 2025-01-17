@@ -111,7 +111,7 @@ class analyseGiessen:
             sys_ind[i] = int(temp[0][0]) + epad_ind[i]
             
             # Computed esp
-            temp,_ = find_peaks(gaussian_filter1d(-self._df['d2pdt2'].values[epad_ind[i]:a_epad_ind[i+1]], sigma=4), 
+            temp,_ = find_peaks(-self._df['d2pdt2'].values[epad_ind[i]:a_epad_ind[i+1]], 
                                    height=1000)
             print(temp)
             try:
