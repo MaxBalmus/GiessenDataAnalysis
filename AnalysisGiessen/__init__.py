@@ -72,7 +72,7 @@ class analyseGiessen:
         print(f"Percentage error: {self._df['Error'].sum() / len(self._df) * 100.:.2f}%")
         return
     
-    def compute_points_of_interest(self, height=100):
+    def compute_points_of_interest(self, height=100, use_filter=True):
         # Compute anti-epad: the minimum dpdt 
         a_epad_ind, _ = find_peaks(-self._df['dpdt'], height=height, distance=100)
         self._points_df['a_epad_ind'] = a_epad_ind.astype(int)
@@ -117,11 +117,15 @@ class analyseGiessen:
         del self._points_df
         self._points_df = temp
         
-        self._points_df['a_epad']  = self._df['fcPressure'].iloc[self._points_df['a_epad_ind'].values.astype(int)].values
-        self._points_df['epad']    = self._df['fcPressure'].iloc[self._points_df['epad_ind'].values.astype(int)].values
+        if not use_filter: 
+            pressure = self._df['Pressure'].values.copy()
+        else:
+            pressure = self._df['fcPressure'].values.copy()
+        self._points_df['a_epad']  = pressure.iloc[self._points_df['a_epad_ind'].values.astype(int)].values
+        self._points_df['epad']    = pressure.iloc[self._points_df['epad_ind'].values.astype(int)].values
         
-        self._points_df['s_a_epad']= self._df['fcPressure'].iloc[self._points_df['a_epad_ind'].values.astype(int) + 3].values
-        self._points_df['s_epad']  = self._df['fcPressure'].iloc[self._points_df['epad_ind'].values.astype(int) - 3].values
+        self._points_df['s_a_epad']= pressure.iloc[self._points_df['a_epad_ind'].values.astype(int) + 3].values
+        self._points_df['s_epad']  = pressure.iloc[self._points_df['epad_ind'].values.astype(int) - 3].values
         
         self._points_df['a_alpha'] = (self._points_df['s_a_epad'] - self._points_df['a_epad']) / 3.
         self._points_df['b_alpha'] = self._points_df['a_epad'] - self._points_df['a_alpha'] * self._points_df['a_epad_ind']
@@ -135,11 +139,11 @@ class analyseGiessen:
         self._points_df['A_p']     = (self._points_df['epad'] + self._points_df['a_epad']) / 2.
         self._points_df['P_max']   = (self._points_df['cross_max'] - self._points_df['A_p']) * 2. / np.pi + self._points_df['A_p']
         ####################################
-        self._points_df['esp']     = self._df['fcPressure'].iloc[self._points_df['esp_ind'].values.astype(int)].values
-        self._points_df['sys']     = self._df['fcPressure'].iloc[self._points_df['sys_ind'].values.astype(int)].values
+        self._points_df['esp']     = pressure.iloc[self._points_df['esp_ind'].values.astype(int)].values
+        self._points_df['sys']     = pressure.iloc[self._points_df['sys_ind'].values.astype(int)].values
         self._points_df['EF']      = 1.0 - self._points_df['esp'] / self._points_df['P_max']
         ####################################
-        self._points_df['dia']     = self._df['fcPressure'].iloc[self._points_df['dia_ind'].values.astype(int)].values
+        self._points_df['dia']     = pressure.iloc[self._points_df['dia_ind'].values.astype(int)].values
         self._points_df['min_dpdt']= self._df['dpdt'].iloc[self._points_df['a_epad_ind'].values.astype(int)].values
         self._points_df['tau']     = -(self._points_df['a_epad'] - self._points_df['dia']) / 2.0 / self._points_df['min_dpdt']
         self._points_df['Ees/Ea']  = self._points_df['P_max'] / self._points_df['esp'] - 1.0
