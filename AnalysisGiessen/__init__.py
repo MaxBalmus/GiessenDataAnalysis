@@ -111,7 +111,10 @@ class analyseGiessen:
             sys_ind[i] = int(temp[0][0]) + epad_ind[i]
             
             # Computed esp
-            temp = np.argmin(self._df['d2pdt2'][sys_ind[i]:a_epad_ind[i+1]])
+            # temp = np.argmin(self._df['d2pdt2'][sys_ind[i]:a_epad_ind[i+1]])
+            temp = find_peaks(gaussian_filter1d(-self._df['d2pdt2'].values, sigma=4), 
+                                   height=height, 
+                                   distance=100)
             try:
                 esp_ind[i] = temp[0] + sys_ind[i]
             except:
