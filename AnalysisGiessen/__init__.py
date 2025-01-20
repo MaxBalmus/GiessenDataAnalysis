@@ -107,8 +107,13 @@ class analyseGiessen:
             dia_ind[i] = int(temp[0][0]) + a_epad
             
             # Compute sys
-            temp = np.where(self._df['dpdt'][epad_ind[i]:] < 0.0)
-            sys_ind[i] = int(temp[0][0]) + epad_ind[i]
+            # temp = np.where(self._df['dpdt'][epad_ind[i]:] < 0.0)
+            temp = np.argmax(pressure[epad_ind[i]:a_epad_ind[i+1]])
+            # sys_ind[i] = int(temp[0][0]) + epad_ind[i]
+            try:
+                sys_ind[i] = temp[0] + epad_ind[i]
+            except:
+                sys_ind[i] = temp    + epad_ind[i]
             
             # Computed esp
             temp = np.argmin(self._df['d2pdt2'][sys_ind[i]:a_epad_ind[i+1]])
@@ -136,7 +141,7 @@ class analyseGiessen:
         try:
             self._points_df['s_a_epad']= pressure[self._points_df['a_epad_ind'].values.astype(int) + 3]
         except:
-            self._points_df['s_a_epad']= pressure[self._points_df['a_epad_ind'].values.astype(int) + 3 - len(self._points_df['a_epad_ind'])]
+            self._points_df['s_a_epad']= pressure[self._points_df['a_epad_ind'].values.astype(int) + 3 - len(self._points_df['a_epad_ind']+1)]
         self._points_df['s_epad']  = pressure[self._points_df['epad_ind'].values.astype(int) - 3]
         
         self._points_df['a_alpha'] = (self._points_df['s_a_epad'] - self._points_df['a_epad']) / 3.
