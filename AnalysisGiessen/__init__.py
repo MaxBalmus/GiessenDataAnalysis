@@ -31,6 +31,7 @@ class analyseGiessen:
         self._t_resolution = 0.004 if t_resolution is None else t_resolution
         
         self._points_df = pd.DataFrame()
+        self.epad_buffer = 10
         return
     
     @property
@@ -92,11 +93,11 @@ class analyseGiessen:
         for i, a_epad in enumerate(a_epad_ind[:-1]):
             # Compute epad
             # temp, _ = find_peaks(self._df['dpdt'][a_epad:a_epad_ind[i+1]], height=height)
-            temp = np.argmax(self._df['dpdt'][a_epad:a_epad_ind[i+1]])
+            temp = np.argmax(self._df['dpdt'][(a_epad+self.epad_buffer):a_epad_ind[i+1]])
             try:
-                epad_ind[i] = int(temp[0]) + a_epad
+                epad_ind[i] = int(temp[0]) + a_epad + self.epad_buffer
             except:
-                epad_ind[i] = a_epad + temp
+                epad_ind[i] = a_epad + temp + self.epad_buffer
                             
             # Compute dia
             temp = np.where(
