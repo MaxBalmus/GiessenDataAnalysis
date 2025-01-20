@@ -92,7 +92,6 @@ class analyseGiessen:
         
         for i, a_epad in enumerate(a_epad_ind[:-1]):
             # Compute epad
-            # temp, _ = find_peaks(self._df['dpdt'][a_epad:a_epad_ind[i+1]], height=height)
             temp = np.argmax(self._df['dpdt'][(a_epad+self.epad_buffer):a_epad_ind[i+1]])
             try:
                 epad_ind[i] = int(temp[0]) + a_epad + self.epad_buffer
@@ -108,16 +107,13 @@ class analyseGiessen:
             dia_ind[i] = int(temp[0][0]) + a_epad
             
             # Compute sys
-            # temp = np.where(self._df['dpdt'][epad_ind[i]:] < 0.0)
             temp = np.argmax(pressure[epad_ind[i]:a_epad_ind[i+1]])
-            # sys_ind[i] = int(temp[0][0]) + epad_ind[i]
             try:
                 sys_ind[i] = temp[0] + epad_ind[i]
             except:
                 sys_ind[i] = temp    + epad_ind[i]
             
             # Computed esp
-            # temp = np.argmin(self._df['d2pdt2'][sys_ind[i]:a_epad_ind[i+1]])
             temp, _ = find_peaks(-self._df['d2pdt2'][sys_ind[i]:a_epad_ind[i+1]], height=height)
             try:
                 esp_ind[i] = temp[0] + sys_ind[i]
