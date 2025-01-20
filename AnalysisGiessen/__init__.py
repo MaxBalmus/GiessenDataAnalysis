@@ -98,7 +98,7 @@ class analyseGiessen:
             except:
                 epad_ind[i] = a_epad + temp + self.epad_buffer
             if pressure[epad_ind[i]] < 0.5 * np.max(pressure[(a_epad+self.epad_buffer):a_epad_ind[i+1]]):
-                temp, _ = find_peaks(self._df['dpdt'][epad_ind[i]:a_epad_ind[i+1]], height=height)
+                temp= np.argmax(self._df['dpdt'][epad_ind[i]:a_epad_ind[i+1]])
                 try:
                     epad_ind[i] = int(temp[0]) + epad_ind[i]
                 except:
