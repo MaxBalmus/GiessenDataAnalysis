@@ -150,7 +150,7 @@ class analyseGiessen:
         self._points_df['b_alpha'] = self._points_df['a_epad'] - self._points_df['a_alpha'] * self._points_df['a_epad_ind']
         
         self._points_df['a_beta']  = (self._points_df['epad'] - self._points_df['s_epad']) / 3.
-        self._points_df['b_beta']  = self._points_df['a_epad'] - self._points_df['a_beta'] * self._points_df['epad_ind']
+        self._points_df['b_beta']  = self._points_df['epad'] - self._points_df['a_beta'] * self._points_df['epad_ind']
         
         self._points_df['cross_ind'] = - (self._points_df['b_alpha'] - self._points_df['b_beta']) / (self._points_df['a_alpha'] - self._points_df['a_beta'])
         self._points_df['cross_max']     = self._points_df['a_beta'] * self._points_df['cross_ind'] + self.points_df['b_beta']
