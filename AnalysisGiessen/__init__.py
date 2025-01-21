@@ -166,6 +166,7 @@ class analyseGiessen:
         ####################################
         self._points_df['dia']     = pressure[self._points_df['dia_ind'].values.astype(int)]
         self._points_df['min_dpdt']= self._df['dpdt'].iloc[self._points_df['a_epad_ind'].values.astype(int)].values
+        self._points_df['max_dpdt']= self._df['dpdt'].iloc[self._points_df['epad_ind'].values.astype(int)].values
         self._points_df['tau']     = -(self._points_df['a_epad'] - self._points_df['dia']) / 2.0 / self._points_df['min_dpdt']
         self._points_df['Ees/Ea']  = self._points_df['P_max'] / self._points_df['esp'] - 1.0
         #####################################
