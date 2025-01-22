@@ -97,12 +97,6 @@ class analyseGiessen:
                 epad_ind[i] = int(temp[0]) + a_epad + self.epad_buffer
             except:
                 epad_ind[i] = a_epad + temp + self.epad_buffer
-            # if pressure[epad_ind[i]] < 0.5 * np.max(pressure[(a_epad+self.epad_buffer):a_epad_ind[i+1]]):
-            #     temp= np.argmax(self._df['dpdt'][epad_ind[i]:a_epad_ind[i+1]])
-            #     try:
-            #         epad_ind[i] = int(temp[0]) + epad_ind[i]
-            #     except:
-            #         epad_ind[i] = a_epad + epad_ind[i]
                             
             # Compute dia
             temp = np.where(
@@ -122,10 +116,11 @@ class analyseGiessen:
             # Computed esp
             temp, _ = find_peaks(-self._df['d2pdt2'][sys_ind[i]:a_epad_ind[i+1]], height=height)
             try:
-                esp_ind[i] = temp[0] + sys_ind[i]
+                temp2   = np.argmin(pressure[sys_ind[i] + temp])
+                esp_ind[i] = temp[temp2] + sys_ind[i]
             except:
-                esp_ind[i] = temp    + sys_ind[i]
-            
+                pass
+                
         self._points_df['epad_ind'] = epad_ind
         self._points_df['dia_ind']  = dia_ind
         self._points_df['sys_ind']  = sys_ind
@@ -148,12 +143,16 @@ class analyseGiessen:
             self._points_df['s_a_epad']= pressure[self._points_df['a_epad_ind'].values.astype(int) + 3 - len(pressure)]
         self._points_df['s_epad']  = pressure[self._points_df['epad_ind'].values.astype(int) - 3]
         
-        self._points_df['a_alpha'] = (self._points_df['s_a_epad'] - self._points_df['a_epad']) / 3.
+        ################################
+        self._points_df['min_dpdt']= self._df['dpdt'].iloc[self._points_df['a_epad_ind'].values.astype(int)].values
+        self._points_df['max_dpdt']= self._df['dpdt'].iloc[self._points_df['epad_ind'].values.astype(int)].values
+        ################################
+        self._points_df['a_alpha'] = self._points_df['min_dpdt'] * self._t_resolution
         self._points_df['b_alpha'] = self._points_df['a_epad'] - self._points_df['a_alpha'] * self._points_df['a_epad_ind']
-        
-        self._points_df['a_beta']  = (self._points_df['epad'] - self._points_df['s_epad']) / 3.
-        self._points_df['b_beta']  = self._points_df['epad'] - self._points_df['a_beta'] * self._points_df['epad_ind']
-        
+        ################################
+        self._points_df['a_beta'] = self._points_df['max_dpdt'] * self._t_resolution
+        self._points_df['b_beta'] = self._points_df['epad'] - self._points_df['a_beta'] * self._points_df['epad_ind']
+        ################################
         self._points_df['cross_ind'] = - (self._points_df['b_alpha'] - self._points_df['b_beta']) / (self._points_df['a_alpha'] - self._points_df['a_beta'])
         self._points_df['cross_max']     = self._points_df['a_beta'] * self._points_df['cross_ind'] + self.points_df['b_beta']
         
@@ -165,8 +164,6 @@ class analyseGiessen:
         self._points_df['EF']      = 1.0 - self._points_df['esp'] / self._points_df['P_max']
         ####################################
         self._points_df['dia']     = pressure[self._points_df['dia_ind'].values.astype(int)]
-        self._points_df['min_dpdt']= self._df['dpdt'].iloc[self._points_df['a_epad_ind'].values.astype(int)].values
-        self._points_df['max_dpdt']= self._df['dpdt'].iloc[self._points_df['epad_ind'].values.astype(int)].values
         self._points_df['tau']     = -(self._points_df['a_epad'] - self._points_df['dia']) / 2.0 / self._points_df['min_dpdt']
         self._points_df['Ees/Ea']  = self._points_df['P_max'] / self._points_df['esp'] - 1.0
         #####################################
