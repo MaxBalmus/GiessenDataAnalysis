@@ -167,7 +167,7 @@ class analyseGiessen:
         self._points_df['tau']     = -(self._points_df['a_epad'] - self._points_df['dia']) / 2.0 / self._points_df['min_dpdt']
         self._points_df['Ees/Ea']  = self._points_df['P_max'] / self._points_df['esp'] - 1.0
         #####################################
-        self._points_df['iT']      = (self._points_df['dia_ind'].values - np.roll(self._points_df['dia_ind'].values, shift=1)) * 0.004
+        self._points_df['iT']      = (self._points_df['dia_ind'].values - np.roll(self._points_df['dia_ind'].values, shift=1)) * self._t_resolution
         self._points_df.loc[0, 'iT'] = 0
         #####################################
         self._points_df['iHR']      = 60. / self._points_df['iT']
