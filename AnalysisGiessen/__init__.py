@@ -67,26 +67,29 @@ class analyseGiessen:
         print(f"Percentage error: {self._df['Error'].sum() / len(self._df) * 100.:.2f}%")
         return
     
-    def compute_points_of_interest(self, height=100, use_filter=True, export_true_derivates=False, except_filter_dia=True):
+    def compute_points_of_interest(self, height=100, use_filter=True, export_true_derivates=False, except_filter_dia=True, export_true_p=False):
         # Compute anti-epad: the minimum dpdt 
         a_epad_ind, _ = find_peaks(-self._df['fdpdt'], height=height, distance=100)
         self._points_df['a_epad_ind'] = a_epad_ind.astype(np.int64)
         
         if not use_filter: 
-            pressure = self._df['Pressure'].values.copy()
+            pressure_ind = self._df['Pressure'].values.copy()
             dpdt_4_ind   = self._df['dpdt'].values.copy()
             d2pdt2_4_ind = self._df['d2pdt2'].values.copy()
         else:
-            pressure = self._df['fcPressure'].values.copy()
+            pressure_ind = self._df['fcPressure'].values.copy()
             dpdt_4_ind   = self._df['fdpdt'].values.copy()
             d2pdt2_4_ind = self._df['fd2pdt2'].values.copy()
             
         if export_true_derivates:
             dpdt_4_exp   = self._df['dpdt'].values.copy()
-            # d2pdt2_4_exp = self._df['d2pdt2'].values.copy()
         else:
             dpdt_4_exp   = self._df['fdpdt'].values.copy()
-            # d2pdt2_4_exp = self._df['fd2pdt2'].values.copy()
+            
+        if export_true_p:
+            pressure_exp = self._df['Pressure'].values.copy()
+        else:
+            pressure_exp = self._df['fcPressure'].values.copy()
         
         epad_ind = np.zeros(a_epad_ind.shape, dtype=np.int64)
         dia_ind  = np.zeros(a_epad_ind.shape, dtype=np.int64)
@@ -107,14 +110,14 @@ class analyseGiessen:
                 temp = np.where(
                             (dpdt_4_ind[a_epad:a_epad_ind[i+1]] >= 0.0) 
                             & 
-                            (pressure[a_epad:a_epad_ind[i+1]] <= pressure[a_epad:a_epad_ind[i+1]].min() + 10.)
+                            (pressure_ind[a_epad:a_epad_ind[i+1]] <= pressure_ind[a_epad:a_epad_ind[i+1]].min() + 10.)
                             )
             else:
                 temp_dpdt = self._df['dpdt'].values.copy()
                 temp = np.where(
                             (temp_dpdt[a_epad:a_epad_ind[i+1]] >= 0.0) 
                             & 
-                            (pressure[a_epad:a_epad_ind[i+1]] <= pressure[a_epad:a_epad_ind[i+1]].min() + 10.)
+                            (pressure_ind[a_epad:a_epad_ind[i+1]] <= pressure_ind[a_epad:a_epad_ind[i+1]].min() + 10.)
                             )
             try:
                 dia_ind[i] = int(temp[0][0]) + a_epad
@@ -122,7 +125,7 @@ class analyseGiessen:
                 dia_ind[i] = a_epad
             
             # Compute sys
-            temp = np.argmax(pressure[epad_ind[i]:a_epad_ind[i+1]])
+            temp = np.argmax(pressure_ind[epad_ind[i]:a_epad_ind[i+1]])
             try:
                 sys_ind[i] = temp[0] + epad_ind[i]
             except:
@@ -131,7 +134,7 @@ class analyseGiessen:
             # Compute esp
             temp, _ = find_peaks(-d2pdt2_4_ind[sys_ind[i]:a_epad_ind[i+1]], height=height)
             try:
-                temp2   = np.argmin(pressure[sys_ind[i] + temp])
+                temp2   = np.argmin(pressure_ind[sys_ind[i] + temp])
                 esp_ind[i] = temp[temp2] + sys_ind[i]
             except:
                 pass
@@ -139,7 +142,7 @@ class analyseGiessen:
             # Compute edp
             temp, _ = find_peaks(d2pdt2_4_ind[dia_ind[i]:epad_ind[i]], height=height)
             try:
-                temp2   = np.argmax(pressure[dia_ind[i] + temp])
+                temp2   = np.argmax(pressure_ind[dia_ind[i] + temp])
                 if isinstance(temp2, np.int64):
                     edp_ind[i] = temp[temp2] + dia_ind[i]
                 else:
@@ -165,14 +168,14 @@ class analyseGiessen:
         
         self._points_df['t_max_dpdt'] = (self._points_df['epad_ind'] - self.points_df['dia_ind']) * self._t_resolution
         
-        self._points_df['a_epad']  = pressure[self._points_df['a_epad_ind'].values.astype(int)]
-        self._points_df['epad']    = pressure[self._points_df['epad_ind'].values.astype(int)]
+        self._points_df['a_epad']  = pressure_exp[self._points_df['a_epad_ind'].values.astype(int)]
+        self._points_df['epad']    = pressure_exp[self._points_df['epad_ind'].values.astype(int)]
         
         try:
-            self._points_df['s_a_epad']= pressure[self._points_df['a_epad_ind'].values.astype(int) + 3]
+            self._points_df['s_a_epad']= pressure_exp[self._points_df['a_epad_ind'].values.astype(int) + 3]
         except:
-            self._points_df['s_a_epad']= pressure[self._points_df['a_epad_ind'].values.astype(int) + 3 - len(pressure)]
-        self._points_df['s_epad']  = pressure[self._points_df['epad_ind'].values.astype(int) - 3]
+            self._points_df['s_a_epad']= pressure_exp[self._points_df['a_epad_ind'].values.astype(int) + 3 - len(pressure_exp)]
+        self._points_df['s_epad']  = pressure_exp[self._points_df['epad_ind'].values.astype(int) - 3]
         
         ################################
         self._points_df['min_dpdt']= dpdt_4_exp[self._points_df['a_epad_ind'].values.astype(int)]
@@ -190,11 +193,11 @@ class analyseGiessen:
         self._points_df['A_p']     = (self._points_df['epad'] + self._points_df['a_epad']) / 2.
         self._points_df['P_max']   = (self._points_df['cross_max'] - self._points_df['A_p']) * 2. / np.pi + self._points_df['A_p']
         ####################################
-        self._points_df['esp']     = pressure[self._points_df['esp_ind'].values.astype(int)]
-        self._points_df['sys']     = pressure[self._points_df['sys_ind'].values.astype(int)]
+        self._points_df['esp']     = pressure_exp[self._points_df['esp_ind'].values.astype(int)]
+        self._points_df['sys']     = pressure_exp[self._points_df['sys_ind'].values.astype(int)]
         self._points_df['EF']      = 1.0 - self._points_df['esp'] / self._points_df['P_max']
         ####################################
-        self._points_df['dia']     = pressure[self._points_df['dia_ind'].values.astype(int)]
+        self._points_df['dia']     = pressure_exp[self._points_df['dia_ind'].values.astype(int)]
         self._points_df['tau']     = -(self._points_df['a_epad'] - self._points_df['dia']) / 2.0 / self._points_df['min_dpdt']
         self._points_df['Ees/Ea']  = self._points_df['P_max'] / self._points_df['esp'] - 1.0
         #####################################
@@ -204,7 +207,7 @@ class analyseGiessen:
         self._points_df['iHR']     = 60. / self._points_df['iT']
         self._points_df.loc[0, 'iHR'] = 0
         #####################################
-        self._points_df['edp']     = pressure[self._points_df['edp_ind'].values.astype(int)] 
+        self._points_df['edp']     = pressure_exp[self._points_df['edp_ind'].values.astype(int)] 
         #####################################
         
         return
