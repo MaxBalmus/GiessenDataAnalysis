@@ -197,7 +197,7 @@ class analyseGiessen:
         
     
     def plot_pressures(self, start=0, finish=-1):
-        finish = len(self._df) + finish if finish == -1 else finish
+        finish = len(self._df) + finish if finish <= -1 else finish
         
         a_epad_ind = self._points_df['a_epad_ind'].values.astype(int)
         a_epad_ind = a_epad_ind[(a_epad_ind >= start) & (a_epad_ind < finish)]
