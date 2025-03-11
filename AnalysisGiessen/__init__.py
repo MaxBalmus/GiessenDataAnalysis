@@ -67,7 +67,7 @@ class analyseGiessen:
         print(f"Percentage error: {self._df['Error'].sum() / len(self._df) * 100.:.2f}%")
         return
     
-    def compute_points_of_interest(self, height=100, use_filter=True, export_true_derivates=False):
+    def compute_points_of_interest(self, height=100, use_filter=True, export_true_derivates=False, except_filter_dia=True):
         # Compute anti-epad: the minimum dpdt 
         a_epad_ind, _ = find_peaks(-self._df['fdpdt'], height=height, distance=100)
         self._points_df['a_epad_ind'] = a_epad_ind.astype(np.int64)
@@ -103,8 +103,16 @@ class analyseGiessen:
                 epad_ind[i] = a_epad + temp + self.epad_buffer
                             
             # Compute dia
-            temp = np.where(
+            if not except_filter_dia:
+                temp = np.where(
                             (dpdt_4_ind[a_epad:a_epad_ind[i+1]] >= 0.0) 
+                            & 
+                            (pressure[a_epad:a_epad_ind[i+1]] <= pressure[a_epad:a_epad_ind[i+1]].min() + 10.)
+                            )
+            else:
+                temp_dpdt = self._df['dpdt'].values.copy()
+                temp = np.where(
+                            (temp_dpdt[a_epad:a_epad_ind[i+1]] >= 0.0) 
                             & 
                             (pressure[a_epad:a_epad_ind[i+1]] <= pressure[a_epad:a_epad_ind[i+1]].min() + 10.)
                             )
