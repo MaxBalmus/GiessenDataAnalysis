@@ -42,7 +42,7 @@ class analyseGiessen:
     def points_df(self):
         return self._points_df.copy()
     
-    def compute_derivatives(self, use_filter=True):
+    def compute_derivatives(self):
         self._sigma_filter_pressure = 6. # Orig (10.), Other: 
         self._df['fPressure'] = gaussian_filter1d(input=self.df['Pressure'].values, 
                                             sigma=self._sigma_filter_pressure)
@@ -51,21 +51,15 @@ class analyseGiessen:
                                             sigma=self._sigma_filter_pressure)
         
         self._sigma_filter_dpdt = 4
-        self._df['dpdt'] = (
-                            gaussian_filter1d(self._df['fcPressure'].values - np.roll(self._df['fcPressure'].values, shift=1), sigma=self._sigma_filter_dpdt) / self._t_resolution 
-                            if use_filter else
-                            ((np.roll(self._df['Pressure'].values, shift=-1) - np.roll(self._df['Pressure'].values, shift=1))/ self._t_resolution / 2.0)
-                            )
+        self._df['dpdt']  = (np.roll(self._df['Pressure'].values, shift=-1) - np.roll(self._df['Pressure'].values, shift=1))/ self._t_resolution / 2.0
+        self._df['fdpdt'] = gaussian_filter1d(np.roll(self._df['fcPressure'].values, shift=-1) - np.roll(self._df['fcPressure'].values, shift=1), sigma=self._sigma_filter_dpdt) / self._t_resolution 
         
         self._sigma_filter_d2pdt2 = 2 # Orig (2), Other: 1 
-        self._df['d2pdt2'] = (
-                            gaussian_filter1d(
+        self._df['d2pdt2']  = (np.roll(self._df['Pressure'].values, shift=-1) - 2.0 * self._df['Pressure'].values + np.roll(self._df['Pressure'].values, shift=1)) / self._t_resolution / self._t_resolution
+        self._df['fd2pdt2'] = gaussian_filter1d(
                                             (np.roll(self._df['fcPressure'].values, shift=-1) - 2.0 * self._df['fcPressure'].values + np.roll(self._df['fcPressure'].values, shift=1)) / self._t_resolution / self._t_resolution,
                                             sigma = self._sigma_filter_d2pdt2
                                             )
-                              if use_filter else
-                                (np.roll(self._df['Pressure'].values, shift=-1) - 2.0 * self._df['Pressure'].values + np.roll(self._df['Pressure'].values, shift=1)) / self._t_resolution / self._t_resolution
-                              )
         
         return
         
@@ -73,17 +67,26 @@ class analyseGiessen:
         print(f"Percentage error: {self._df['Error'].sum() / len(self._df) * 100.:.2f}%")
         return
     
-    def compute_points_of_interest(self, height=100, use_filter=True):
+    def compute_points_of_interest(self, height=100, use_filter=True, export_true_derivates=False):
         # Compute anti-epad: the minimum dpdt 
-        a_epad_ind, _ = find_peaks(gaussian_filter1d(-self._df['dpdt'].values, sigma=4), 
-                                   height=height, 
-                                   distance=100)
+        a_epad_ind, _ = find_peaks(-self._df['fdpdt'], height=height, distance=100)
         self._points_df['a_epad_ind'] = a_epad_ind.astype(np.int64)
         
         if not use_filter: 
             pressure = self._df['Pressure'].values.copy()
+            dpdt_4_ind   = self._df['dpdt'].values.copy()
+            d2pdt2_4_ind = self._df['d2pdt2'].values.copy()
         else:
             pressure = self._df['fcPressure'].values.copy()
+            dpdt_4_ind   = self._df['fdpdt'].values.copy()
+            d2pdt2_4_ind = self._df['fd2pdt2'].values.copy()
+            
+        if export_true_derivates:
+            dpdt_4_exp   = self._df['dpdt'].values.copy()
+            # d2pdt2_4_exp = self._df['d2pdt2'].values.copy()
+        else:
+            dpdt_4_exp   = self._df['fdpdt'].values.copy()
+            # d2pdt2_4_exp = self._df['fd2pdt2'].values.copy()
         
         epad_ind = np.zeros(a_epad_ind.shape, dtype=np.int64)
         dia_ind  = np.zeros(a_epad_ind.shape, dtype=np.int64)
@@ -93,7 +96,7 @@ class analyseGiessen:
         
         for i, a_epad in enumerate(a_epad_ind[:-1]):
             # Compute epad
-            temp = np.argmax(self._df['dpdt'][(a_epad+self.epad_buffer):a_epad_ind[i+1]])
+            temp = np.argmax(dpdt_4_ind[(a_epad+self.epad_buffer):a_epad_ind[i+1]])
             try:
                 epad_ind[i] = int(temp[0]) + a_epad + self.epad_buffer
             except:
@@ -101,11 +104,14 @@ class analyseGiessen:
                             
             # Compute dia
             temp = np.where(
-                            (self._df['dpdt'][a_epad:a_epad_ind[i+1]] >= 0.0) 
+                            (dpdt_4_ind[a_epad:a_epad_ind[i+1]] >= 0.0) 
                             & 
                             (pressure[a_epad:a_epad_ind[i+1]] <= pressure[a_epad:a_epad_ind[i+1]].min() + 10.)
                             )
-            dia_ind[i] = int(temp[0][0]) + a_epad
+            try:
+                dia_ind[i] = int(temp[0][0]) + a_epad
+            except:
+                dia_ind[i] = a_epad
             
             # Compute sys
             temp = np.argmax(pressure[epad_ind[i]:a_epad_ind[i+1]])
@@ -115,7 +121,7 @@ class analyseGiessen:
                 sys_ind[i] = temp    + epad_ind[i]
             
             # Compute esp
-            temp, _ = find_peaks(-self._df['d2pdt2'][sys_ind[i]:a_epad_ind[i+1]], height=height)
+            temp, _ = find_peaks(-d2pdt2_4_ind[sys_ind[i]:a_epad_ind[i+1]], height=height)
             try:
                 temp2   = np.argmin(pressure[sys_ind[i] + temp])
                 esp_ind[i] = temp[temp2] + sys_ind[i]
@@ -123,7 +129,7 @@ class analyseGiessen:
                 pass
             
             # Compute edp
-            temp, _ = find_peaks(self._df['d2pdt2'][dia_ind[i]:epad_ind[i]], height=height)
+            temp, _ = find_peaks(d2pdt2_4_ind[dia_ind[i]:epad_ind[i]], height=height)
             try:
                 temp2   = np.argmax(pressure[dia_ind[i] + temp])
                 if isinstance(temp2, np.int64):
@@ -161,8 +167,8 @@ class analyseGiessen:
         self._points_df['s_epad']  = pressure[self._points_df['epad_ind'].values.astype(int) - 3]
         
         ################################
-        self._points_df['min_dpdt']= self._df['dpdt'].iloc[self._points_df['a_epad_ind'].values.astype(int)].values
-        self._points_df['max_dpdt']= self._df['dpdt'].iloc[self._points_df['epad_ind'].values.astype(int)].values
+        self._points_df['min_dpdt']= dpdt_4_exp[self._points_df['a_epad_ind'].values.astype(int)]
+        self._points_df['max_dpdt']= dpdt_4_exp[self._points_df['epad_ind'].values.astype(int)]
         ################################
         self._points_df['a_alpha'] = self._points_df['min_dpdt'] * self._t_resolution
         self._points_df['b_alpha'] = self._points_df['a_epad'] - self._points_df['a_alpha'] * self._points_df['a_epad_ind']
@@ -196,7 +202,7 @@ class analyseGiessen:
         return
         
     
-    def plot_pressures(self, start=0, finish=-1):
+    def plot_pressures(self, start=0, finish=-1, use_filter=True):
         finish = len(self._df) + finish if finish <= -1 else finish
         
         a_epad_ind = self._points_df['a_epad_ind'].values.astype(int)
@@ -249,7 +255,10 @@ class analyseGiessen:
         ax[2].legend()
         
         ax[3].grid(axis='x')
-        ax[3].plot(self._df.index[start:finish], self._df['dpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='-')
+        if use_filter:
+             ax[3].plot(self._df.index[start:finish], self._df['fdpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='-')
+        else:
+            ax[3].plot(self._df.index[start:finish], self._df['dpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='-')
         ax[3].legend()
         
         for a_epad, epad, dia, sys in zip(a_epad_ind, epad_ind, dia_ind, sys_ind):
@@ -259,7 +268,10 @@ class analyseGiessen:
             
 
         ax[4].grid(axis='x')
-        ax[4].plot(self._df.index[start:finish], self._df['d2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='-')
+        if use_filter:
+            ax[4].plot(self._df.index[start:finish], self._df['fd2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='-')
+        else:
+            ax[4].plot(self._df.index[start:finish], self._df['d2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='-')
         ax[4].legend()
         
         for sys, a_epad, esp, edp in zip(sys_ind, a_epad_ind, esp_ind, edp_ind):
