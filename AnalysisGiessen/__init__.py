@@ -69,9 +69,7 @@ class analyseGiessen:
     
     def compute_points_of_interest(self, height=100, use_filter=True, export_true_derivates=False):
         # Compute anti-epad: the minimum dpdt 
-        a_epad_ind, _ = find_peaks(gaussian_filter1d(-self._df['dpdt'].values, sigma=4), 
-                                   height=height, 
-                                   distance=100)
+        a_epad_ind, _ = find_peaks(-self._df['fdpdt'], height=height, distance=100)
         self._points_df['a_epad_ind'] = a_epad_ind.astype(np.int64)
         
         if not use_filter: 
@@ -110,7 +108,6 @@ class analyseGiessen:
                             & 
                             (pressure[a_epad:a_epad_ind[i+1]] <= pressure[a_epad:a_epad_ind[i+1]].min() + 10.)
                             )
-            print(temp)
             try:
                 dia_ind[i] = int(temp[0][0]) + a_epad
             except:
