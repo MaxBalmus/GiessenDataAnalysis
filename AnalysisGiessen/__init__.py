@@ -67,7 +67,7 @@ class analyseGiessen:
         return self._sigma_filter_d2pdt2
     
     @sigma_filter_d2pdt2.setter
-    def sigma_filter_dpdt(self, value):
+    def sigma_filter_d2pdt2(self, value):
         self._sigma_filter_d2pdt2 = value
     
     def compute_derivatives(self):
