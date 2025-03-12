@@ -193,6 +193,7 @@ class analyseGiessen:
         self._points_df = temp
         
         self._points_df['t_max_dpdt'] = (self._points_df['epad_ind'] - self.points_df['dia_ind']) * self._t_resolution
+        self._points_df['t_min_dpdt'] = (self._points_df['a_epad_ind'] - self.points_df['dia_ind']) * self._t_resolution
         
         self._points_df['a_epad']  = pressure_exp[self._points_df['a_epad_ind'].values.astype(int)]
         self._points_df['epad']    = pressure_exp[self._points_df['epad_ind'].values.astype(int)]
