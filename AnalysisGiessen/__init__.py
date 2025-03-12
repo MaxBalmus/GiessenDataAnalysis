@@ -32,6 +32,10 @@ class analyseGiessen:
         
         self._points_df = pd.DataFrame()
         self.epad_buffer = 10
+        
+        self._sigma_filter_pressure = 6.
+        self._sigma_filter_dpdt = 4
+        self._sigma_filter_d2pdt2 = 2
         return
     
     @property
@@ -42,19 +46,41 @@ class analyseGiessen:
     def points_df(self):
         return self._points_df.copy()
     
+    @property
+    def sigma_filter_pressure(self):
+        return self._sigma_filter_pressure
+    
+    @sigma_filter_pressure.setter
+    def sigma_filter_pressure(self, value):
+        self._sigma_filter_pressure = value
+        
+    @property
+    def sigma_filter_dpdt(self):
+        return self._sigma_filter_dpdt
+    
+    @sigma_filter_dpdt.setter
+    def sigma_filter_dpdt(self, value):
+        self._sigma_filter_dpdt = value
+        
+    @property
+    def sigma_filter_d2pdt2(self):
+        return self._sigma_filter_d2pdt2
+    
+    @sigma_filter_d2pdt2.setter
+    def sigma_filter_dpdt(self, value):
+        self._sigma_filter_d2pdt2 = value
+    
     def compute_derivatives(self):
-        self._sigma_filter_pressure = 6. # Orig (10.), Other: 
         self._df['fPressure'] = gaussian_filter1d(input=self.df['Pressure'].values, 
                                             sigma=self._sigma_filter_pressure)
         
         self._df['fcPressure']= gaussian_filter1d(input=self.df['cPressure'].values, 
                                             sigma=self._sigma_filter_pressure)
         
-        self._sigma_filter_dpdt = 4
         self._df['dpdt']  = (np.roll(self._df['Pressure'].values, shift=-1) - np.roll(self._df['Pressure'].values, shift=1))/ self._t_resolution / 2.0
         self._df['fdpdt'] = gaussian_filter1d(np.roll(self._df['fcPressure'].values, shift=-1) - np.roll(self._df['fcPressure'].values, shift=1), sigma=self._sigma_filter_dpdt) / self._t_resolution 
         
-        self._sigma_filter_d2pdt2 = 2 # Orig (2), Other: 1 
+        # Orig (2), Other: 1 
         self._df['d2pdt2']  = (np.roll(self._df['Pressure'].values, shift=-1) - 2.0 * self._df['Pressure'].values + np.roll(self._df['Pressure'].values, shift=1)) / self._t_resolution / self._t_resolution
         self._df['fd2pdt2'] = gaussian_filter1d(
                                             (np.roll(self._df['fcPressure'].values, shift=-1) - 2.0 * self._df['fcPressure'].values + np.roll(self._df['fcPressure'].values, shift=1)) / self._t_resolution / self._t_resolution,
