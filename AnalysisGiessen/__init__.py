@@ -93,7 +93,7 @@ class analyseGiessen:
         print(f"Percentage error: {self._df['Error'].sum() / len(self._df) * 100.:.2f}%")
         return
     
-    def compute_points_of_interest(self, height=100, use_filter=True, export_true_derivates=False, except_filter_dia=True, export_true_p=False):
+    def compute_points_of_interest(self, height=100, use_filter=True, export_true_derivates=False, exclusion_list=['dia'], export_true_p=False):
         # Compute anti-epad: the minimum dpdt 
         a_epad_ind, _ = find_peaks(-self._df['fdpdt'], height=height, distance=100)
         self._points_df['a_epad_ind'] = a_epad_ind.astype(np.int64)
@@ -132,7 +132,8 @@ class analyseGiessen:
                 epad_ind[i] = a_epad + temp + self.epad_buffer
                             
             # Compute dia
-            if not except_filter_dia:
+            # if not except_filter_dia:
+            if 'dia' not in exclusion_list:
                 temp = np.where(
                             (dpdt_4_ind[a_epad:a_epad_ind[i+1]] >= 0.0) 
                             & 
@@ -158,12 +159,25 @@ class analyseGiessen:
                 sys_ind[i] = temp    + epad_ind[i]
             
             # Compute esp
-            temp, _ = find_peaks(-d2pdt2_4_ind[sys_ind[i]:a_epad_ind[i+1]], height=height)
-            try:
-                temp2   = np.argmin(pressure_ind[sys_ind[i] + temp])
-                esp_ind[i] = temp[temp2] + sys_ind[i]
-            except:
-                pass
+            if 'esp' not in exclusion_list:
+                temp, _ = find_peaks(-d2pdt2_4_ind[sys_ind[i]:a_epad_ind[i+1]], height=height)
+                try:
+                    temp2   = np.argmin(pressure_ind[sys_ind[i] + temp])
+                    esp_ind[i] = temp[temp2] + sys_ind[i]
+                except:
+                    temp, _ = find_peaks(-self._df['d2pdt2'].values[sys_ind[i]:a_epad_ind[i+1]], height=height)
+                    try:
+                        temp2   = np.argmin(pressure_ind[sys_ind[i] + temp])
+                        esp_ind[i] = temp[temp2] + sys_ind[i]
+                    except:
+                        esp_ind[i] = sys_ind
+            else:
+                temp, _ = find_peaks(-self._df['d2pdt2'].values[sys_ind[i]:a_epad_ind[i+1]], height=height)
+                try:
+                    temp2   = np.argmin(pressure_ind[sys_ind[i] + temp])
+                    esp_ind[i] = temp[temp2] + sys_ind[i]
+                except:
+                    esp_ind[i] = sys_ind
             
             # Compute edp
             temp, _ = find_peaks(d2pdt2_4_ind[dia_ind[i]:epad_ind[i]], height=height)
