@@ -189,7 +189,7 @@ class analyseGiessen:
                 if not isinstance(temp, np.ndarray):
                     edp_ind[i] = temp    + dia_ind[i]
                 else:
-                    edp_ind[i] = edp_ind[i]
+                    edp_ind[i] = dia_ind[i]
                 
         self._points_df['epad_ind'] = epad_ind
         self._points_df['dia_ind']  = dia_ind
