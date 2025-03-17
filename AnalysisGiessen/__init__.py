@@ -305,10 +305,8 @@ class analyseGiessen:
         ax[2].legend()
         
         ax[3].grid(axis='x')
-        if use_filter:
-             ax[3].plot(self._df.index[start:finish], self._df['fdpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='-')
-        else:
-            ax[3].plot(self._df.index[start:finish], self._df['dpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='-')
+        ax[3].plot(self._df.index[start:finish], self._df['fdpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='-')
+        ax[3].plot(self._df.index[start:finish], self._df['dpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='--')
         ax[3].legend()
         
         for a_epad, epad, dia, sys in zip(a_epad_ind, epad_ind, dia_ind, sys_ind):
@@ -318,10 +316,8 @@ class analyseGiessen:
             
 
         ax[4].grid(axis='x')
-        if use_filter:
-            ax[4].plot(self._df.index[start:finish], self._df['fd2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='-')
-        else:
-            ax[4].plot(self._df.index[start:finish], self._df['d2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='-')
+        ax[4].plot(self._df.index[start:finish], self._df['fd2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='-')
+        ax[4].plot(self._df.index[start:finish], self._df['d2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='--')
         ax[4].legend()
         
         for sys, a_epad, esp, edp in zip(sys_ind, a_epad_ind, esp_ind, edp_ind):
