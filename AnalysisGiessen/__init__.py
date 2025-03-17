@@ -252,7 +252,7 @@ class analyseGiessen:
         return
         
     
-    def plot_pressures(self, start=0, finish=-1, use_filter=True):
+    def plot_pressures(self, start=0, finish=-1, non_filter=True):
         finish = len(self._df) + finish if finish <= -1 else finish
         
         a_epad_ind = self._points_df['a_epad_ind'].values.astype(int)
@@ -306,7 +306,7 @@ class analyseGiessen:
         
         ax[3].grid(axis='x')
         ax[3].plot(self._df.index[start:finish], self._df['fdpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='-')
-        ax[3].plot(self._df.index[start:finish], self._df['dpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='--')
+        if non_filter : ax[3].plot(self._df.index[start:finish], self._df['dpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='--')
         ax[3].legend()
         
         for a_epad, epad, dia, sys in zip(a_epad_ind, epad_ind, dia_ind, sys_ind):
@@ -317,7 +317,7 @@ class analyseGiessen:
 
         ax[4].grid(axis='x')
         ax[4].plot(self._df.index[start:finish], self._df['fd2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='-')
-        ax[4].plot(self._df.index[start:finish], self._df['d2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='--')
+        if non_filter : ax[4].plot(self._df.index[start:finish], self._df['d2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='--')
         ax[4].legend()
         
         for sys, a_epad, esp, edp in zip(sys_ind, a_epad_ind, esp_ind, edp_ind):
