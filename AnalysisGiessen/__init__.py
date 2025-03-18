@@ -305,8 +305,8 @@ class analyseGiessen:
         ax[2].legend()
         
         ax[3].grid(axis='x')
-        ax[3].plot(self._df.index[start:finish], self._df['fdpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='-')
-        if non_filter : ax[3].plot(self._df.index[start:finish], self._df['dpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='--')
+        ax[3].plot(self._df.index[start:finish], self._df['dpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='--')
+        if non_filter : ax[3].plot(self._df.index[start:finish], self._df['fdpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='-')
         ax[3].legend()
         
         for a_epad, epad, dia, sys in zip(a_epad_ind, epad_ind, dia_ind, sys_ind):
