@@ -160,9 +160,16 @@ class analyseGiessen:
             
             # Compute esp
             if 'esp' not in exclusion_list:
-                temp, _ = find_peaks(-d2pdt2_4_ind[sys_ind[i]:a_epad_ind[i+1]], height=height_d2pdt2)
+                field = -d2pdt2_4_ind[sys_ind[i]:a_epad_ind[i+1]]
             else:
-                temp, _ = find_peaks(-self._df['d2pdt2'].values[sys_ind[i]:a_epad_ind[i+1]], height=height_d2pdt2)
+                field = -self._df['d2pdt2'].values[sys_ind[i]:a_epad_ind[i+1]]
+            height = np.max(field) / 2.
+            height = height if height > height_d2pdt2 else height_d2pdt2
+            temp = []
+            while len(temp) == 0:
+                temp, _ = find_peaks(field, height=height)
+                height = height * 0.8
+                if not isinstance(temp, np.int64) : temp = [temp,]
             try:
                 temp2   = np.argmin(pressure_ind[sys_ind[i] + temp])
                 esp_ind[i] = temp[temp2] + sys_ind[i]
