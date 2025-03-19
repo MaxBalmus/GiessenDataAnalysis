@@ -166,10 +166,12 @@ class analyseGiessen:
             height = np.max(field) / 2.
             height = height if height > height_d2pdt2 else height_d2pdt2
             temp = []
-            while len(temp) == 0:
+            k = 0 
+            while len(temp) == 0 and k < 10:
                 temp, _ = find_peaks(field, height=height)
                 height = height * 0.8
-                if not isinstance(temp, np.int64) : temp = [temp,]
+                k += 1
+                if isinstance(temp, np.int64) : temp = [temp,]
             try:
                 temp2   = np.argmin(pressure_ind[sys_ind[i] + temp])
                 esp_ind[i] = temp[temp2] + sys_ind[i]
