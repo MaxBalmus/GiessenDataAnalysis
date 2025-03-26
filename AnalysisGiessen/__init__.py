@@ -93,10 +93,12 @@ class analyseGiessen:
         print(f"Percentage error: {self._df['Error'].sum() / len(self._df) * 100.:.2f}%")
         return
     
-    def compute_points_of_interest(self, height=100, height_d2pdt2=1000, distance=5, use_filter=True, export_true_derivates=False, exclusion_list=['dia'], export_true_p=False):
+    def compute_points_of_interest(self, height=100, height_d2pdt2=1000, distance=5, use_filter=True, export_true_derivates=False, exclusion_list=['dia'], export_true_p=False, start_at_edp=False):
         # Compute anti-epad: the minimum dpdt 
         a_epad_ind, _ = find_peaks(-self._df['fdpdt'], height=height, distance=100)
         self._points_df['a_epad_ind'] = a_epad_ind.astype(np.int64)
+        
+        self.start_at_edp = start_at_edp
         
         if not use_filter: 
             pressure_ind = self._df['Pressure'].values.copy()
@@ -209,12 +211,16 @@ class analyseGiessen:
         shift = 1
         temp = self._points_df.copy()
         temp['a_epad_ind'] = np.roll(temp['a_epad_ind'].values, shift=-shift)
+        
+        if self.start_at_edp:  temp['dia_ind'] = np.roll(temp['dia_ind'].values, shift=-shift)
         temp.drop(len(temp) - 1, inplace=True)
         del self._points_df
         self._points_df = temp
+        ref = self.points_df['dia_ind']
+        if self.start_at_edp: ref = self.points_df['edp_ind']
         
-        self._points_df['t_max_dpdt'] = (self._points_df['epad_ind'] - self.points_df['dia_ind']) * self._t_resolution
-        self._points_df['t_min_dpdt'] = (self._points_df['a_epad_ind'] - self.points_df['dia_ind']) * self._t_resolution
+        self._points_df['t_max_dpdt'] = (self._points_df['epad_ind'] - ref) * self._t_resolution
+        self._points_df['t_min_dpdt'] = (self._points_df['a_epad_ind'] - ref) * self._t_resolution
         
         self._points_df['a_epad']  = pressure_exp[self._points_df['a_epad_ind'].values.astype(int)]
         self._points_df['epad']    = pressure_exp[self._points_df['epad_ind'].values.astype(int)]
@@ -249,11 +255,12 @@ class analyseGiessen:
         self._points_df['tau']     = -(self._points_df['a_epad'] - self._points_df['dia']) / 2.0 / self._points_df['min_dpdt']
         self._points_df['Ees/Ea']  = self._points_df['P_max'] / self._points_df['esp'] - 1.0
         #####################################
-        self._points_df['iT']      = (self._points_df['dia_ind'].values - np.roll(self._points_df['dia_ind'].values, shift=1)) * self._t_resolution
-        self._points_df.loc[0, 'iT'] = 0
+        self._points_df['iT']      = (np.roll(ref.values, shift=-1) - ref.values) * self._t_resolution
+        self._points_df.loc[len(self._points_df)-1, 'iT'] = (len(pressure_exp) - 1 - ref.values[-1])* self._t_resolution
+        # raise Exception()
         #####################################
         self._points_df['iHR']     = 60. / self._points_df['iT']
-        self._points_df.loc[0, 'iHR'] = 0
+        # self._points_df.loc[0, 'iHR'] = 0
         #####################################
         self._points_df['edp']     = pressure_exp[self._points_df['edp_ind'].values.astype(int)] 
         #####################################
@@ -388,9 +395,12 @@ class analyseGiessen:
         return
     
     def resample_heart_beat(self):
-        dia_array = self._points_df['dia_ind'].values
-        pulses = np.zeros((len(dia_array)-1, 101))
-        for i, dia_indx in enumerate(dia_array[:-1]):
-            ind1, ind2 = dia_indx, dia_array[i+1]
+        if self.start_at_edp:
+            ind_array = self._points_df['edp_ind'].values
+        else:
+            ind_array = self._points_df['dia_ind'].values
+        pulses = np.zeros((len(ind_array)-1, 101))
+        for i, indx in enumerate(ind_array[:-1]):
+            ind1, ind2 = indx, ind_array[i+1]
             pulses[i,:] = np.interp(np.linspace(0, ind2-ind1, num=101), np.linspace(0, ind2-ind1, ind2-ind1), self._df['fcPressure'].iloc[ind1:ind2])
         return pulses
