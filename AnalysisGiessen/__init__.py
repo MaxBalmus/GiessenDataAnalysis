@@ -23,6 +23,7 @@ class analyseGiessen:
             
             self._df['Pressure'] = self._df['Druck [dezi mmHg]'] / 10.
             self._df['cPressure'] = self._df['Druck kompensiert [dezi mmHg]'] / 10.
+            self._df['Temperature'] = self.df['Sondentemperatur [dezi °C]'] / 10.
             
             self._df.drop(['Druck [dezi mmHg]', 'Druck kompensiert [dezi mmHg]'], axis=1, inplace=True)
         else:
@@ -222,6 +223,7 @@ class analyseGiessen:
         self._points_df['t_max_dpdt'] = (self._points_df['epad_ind'] - ref) * self._t_resolution
         self._points_df['t_min_dpdt'] = (self._points_df['a_epad_ind'] - ref) * self._t_resolution
         self._points_df['t_max_p']    = (self._points_df['sys_ind'] - ref) * self._t_resolution
+        self._points_df['t_dia']      = (self._points_df['dia_ind'] - ref) * self._t_resolution
         
         self._points_df['a_epad']  = pressure_exp[self._points_df['a_epad_ind'].values.astype(int)]
         self._points_df['epad']    = pressure_exp[self._points_df['epad_ind'].values.astype(int)]
@@ -269,7 +271,7 @@ class analyseGiessen:
         return
         
     
-    def plot_pressures(self, start=0, finish=-1, non_filter=True):
+    def plot_pressures(self, start=0, finish=-1, non_filter=True, plot_features=True):
         finish = len(self._df) + finish if finish <= -1 else finish
         
         a_epad_ind = self._points_df['a_epad_ind'].values.astype(int)
@@ -290,20 +292,22 @@ class analyseGiessen:
         edp_ind = self._points_df['edp_ind'].values.astype(int)
         edp_ind = edp_ind[(edp_ind >= start) & (edp_ind < finish)]
         
-        _, ax = plt.subplots(figsize=(20,15), nrows=5)
+        fig, ax = plt.subplots(figsize=(20,21), nrows=7)
 
         ax[0].grid(axis='x')
         ax[0].plot(self._df.index[start:finish], self._df['cPressure'].iloc[start:finish] , label='Compensated', linewidth=4)
         ax[0].plot(self._df.index[start:finish], self._df['fcPressure'].iloc[start:finish], label='c. filtered', linewidth=4, linestyle='-.')
+        ax[0].set_ylabel('Pressure [mmHg]')
         ax[0].legend()
         
-        for a_epad, epad, dia, sys, esp, edp in zip(a_epad_ind, epad_ind, dia_ind, sys_ind, esp_ind, edp_ind):
-            ax[0].axvline(self._df.index[a_epad], color=mcolors.TABLEAU_COLORS['tab:olive'], linewidth=4, linestyle=':')
-            ax[0].axvline(self._df.index[epad],   color=mcolors.TABLEAU_COLORS['tab:blue'],  linewidth=4, linestyle=':')
-            ax[0].axvline(self._df.index[dia],    color=mcolors.TABLEAU_COLORS['tab:red'],   linewidth=4, linestyle=':')
-            ax[0].axvline(self._df.index[sys],    color=mcolors.TABLEAU_COLORS['tab:purple'],linewidth=4, linestyle=':')
-            ax[0].axvline(self._df.index[esp],    color='r',                                 linewidth=1, linestyle='-')
-            ax[0].axvline(self._df.index[edp],    color='g',                                 linewidth=1, linestyle='-')
+        if plot_features:
+            for a_epad, epad, dia, sys, esp, edp in zip(a_epad_ind, epad_ind, dia_ind, sys_ind, esp_ind, edp_ind):
+                ax[0].axvline(self._df.index[a_epad], color=mcolors.TABLEAU_COLORS['tab:olive'], linewidth=4, linestyle=':')
+                ax[0].axvline(self._df.index[epad],   color=mcolors.TABLEAU_COLORS['tab:blue'],  linewidth=4, linestyle=':')
+                ax[0].axvline(self._df.index[dia],    color=mcolors.TABLEAU_COLORS['tab:red'],   linewidth=4, linestyle=':')
+                ax[0].axvline(self._df.index[sys],    color=mcolors.TABLEAU_COLORS['tab:purple'],linewidth=4, linestyle=':')
+                ax[0].axvline(self._df.index[esp],    color='r',                                 linewidth=1, linestyle='-')
+                ax[0].axvline(self._df.index[edp],    color='g',                                 linewidth=1, linestyle='-')
         
         self._df['Noise']  = self._df['Pressure'] - self._df['fPressure']
         self._df['cNoise'] = self._df['cPressure'] - self._df['fcPressure']
@@ -311,6 +315,7 @@ class analyseGiessen:
         ax[1].grid(axis='x')
         ax[1].plot(self._df.index[start:finish], self._df['Noise'].iloc[start:finish], label='Noise', linewidth=4, linestyle='-')
         ax[1].plot(self._df.index[start:finish], self._df['cNoise'].iloc[start:finish], label='cNoise', linewidth=4, linestyle='-')
+        ax[1].set_ylabel('Pressure [mmHg]')
         ax[1].legend()
         
         self._df['Compensation']  = self._df['cPressure']  - self._df['Pressure']
@@ -324,72 +329,86 @@ class analyseGiessen:
         ax[3].grid(axis='x')
         ax[3].plot(self._df.index[start:finish], self._df['fdpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='-')
         if non_filter :  ax[3].plot(self._df.index[start:finish], self._df['dpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='--')
+        ax[3].set_ylabel('$mmHg/s$')
         ax[3].legend()
-        
-        for a_epad, epad, dia, sys in zip(a_epad_ind, epad_ind, dia_ind, sys_ind):
-            ax[3].axvline(self._df.index[a_epad], color=mcolors.TABLEAU_COLORS['tab:olive'], linewidth=4, linestyle=':')
-            ax[3].axvline(self._df.index[epad],   color=mcolors.TABLEAU_COLORS['tab:blue'],  linewidth=4, linestyle=':')
-            ax[3].axvline(self._df.index[dia],    color=mcolors.TABLEAU_COLORS['tab:red'],   linewidth=4, linestyle=':')
+
+        if plot_features:
+            for a_epad, epad, dia, sys in zip(a_epad_ind, epad_ind, dia_ind, sys_ind):
+                ax[3].axvline(self._df.index[a_epad], color=mcolors.TABLEAU_COLORS['tab:olive'], linewidth=4, linestyle=':')
+                ax[3].axvline(self._df.index[epad],   color=mcolors.TABLEAU_COLORS['tab:blue'],  linewidth=4, linestyle=':')
+                ax[3].axvline(self._df.index[dia],    color=mcolors.TABLEAU_COLORS['tab:red'],   linewidth=4, linestyle=':')
             
 
         ax[4].grid(axis='x')
         ax[4].plot(self._df.index[start:finish], self._df['fd2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='-')
         if non_filter : ax[4].plot(self._df.index[start:finish], self._df['d2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='--')
+        ax[4].set_ylabel('$mmHg/s^2$')
         ax[4].legend()
         
-        for sys, a_epad, esp, edp in zip(sys_ind, a_epad_ind, esp_ind, edp_ind):
-            ax[4].axvline(self._df.index[sys],    color=mcolors.TABLEAU_COLORS['tab:purple'],  linewidth=4, linestyle=':')
-            ax[4].axvline(self._df.index[a_epad], color=mcolors.TABLEAU_COLORS['tab:olive'],   linewidth=4, linestyle=':')
-            ax[4].axvline(self._df.index[esp],    color='r',                                   linewidth=1, linestyle='-')
-            ax[4].axvline(self._df.index[edp],    color='g',                                   linewidth=1, linestyle='-')
+        if plot_features:
+            for sys, a_epad, esp, edp in zip(sys_ind, a_epad_ind, esp_ind, edp_ind):
+                ax[4].axvline(self._df.index[sys],    color=mcolors.TABLEAU_COLORS['tab:purple'],  linewidth=4, linestyle=':')
+                ax[4].axvline(self._df.index[a_epad], color=mcolors.TABLEAU_COLORS['tab:olive'],   linewidth=4, linestyle=':')
+                ax[4].axvline(self._df.index[esp],    color='r',                                   linewidth=1, linestyle='-')
+                ax[4].axvline(self._df.index[edp],    color='g',                                   linewidth=1, linestyle='-')
+                
+        self._df['Acc'] = (self._df['ACC x [centi g]']**2.0 + self._df['ACC y [centi g]']**2.0 + self._df['ACC z [centi g]']**2.0) ** 0.5 / 100.
+        
+        ax[5].plot(self._df.index[start:finish], self._df['Acc'].iloc[start:finish], label='Acceleration')
+        ax[5].set_ylabel('Acc [G]')
+        
+        ax[6].plot(self._df.index[start:finish], self._df['Temperature'].iloc[start:finish], label='Temp.')
+        ax[6].set_xlabel('Temp. [$^oC$]')
+        ax[6].set_xlabel('Time')
+
+        
+        fig.tight_layout()
         plt.show()
         return
     
     
-    def plot_single_pulse_metrics(self):
-        fig, ax = plt.subplots(nrows=5, figsize=(20, 20))
+    def plot_single_pulse_metrics(self, start=0, finish=-1):
+        fig, ax = plt.subplots(nrows=4, figsize=(20, 12))
+        finish = len(self._df) + finish if finish <= -1 else finish
         
-        ax[0].plot(self._points_df['dia'],  label='dia')
-        ax[0].plot(self._points_df['sys'],  label='sys')
-        ax[0].plot(self._points_df['epad'], label='epad')
-        ax[0].plot(self._points_df['esp'],  label='esp')
-        ax[0].plot(self._points_df['edp'],  label='edp')
-        ax[0].set_xlim([0, len(self._points_df)])
+        flag = self._points_df.query('dia_ind >= @start & dia_ind <= @finish').index
+        # raise Exception(flag)
+        # raise Exception((self._points_df['dia_ind'] >= start) & (self._points_df['dia_ind'] <= finish))
+        ax[0].plot(self._points_df.loc[flag, 'dia'],  label='dia')
+        ax[0].plot(self._points_df.loc[flag, 'sys'],  label='sys')
+        ax[0].plot(self._points_df.loc[flag, 'epad'], label='epad')
+        ax[0].plot(self._points_df.loc[flag, 'esp'],  label='esp')
+        ax[0].plot(self._points_df.loc[flag,'edp'],  label='edp')
+        ax[0].set_xlim([0, len(flag)-1])
         ax[0].set_ylabel('Pressure [mmHg]')
         ax[0].set_xlabel('Heart beat index')
-        
+        ax[0].grid(axis='x')
         ax[0].legend()
         
-        ax[1].plot(self._points_df['EF'], label='EF')        
-        ax[1].set_xlim([0, len(self._points_df)])
+        ax[1].plot(self._points_df.loc[flag,'EF'], label='EF')        
+        ax[1].set_xlim([0, len(flag)-1])
         ax[1].set_ylabel('Ejection fraction')
         ax[1].set_xlabel('Heart beat index')
-        
+        ax[1].grid(axis='x')
         ax[1].legend()
         
-        ax[2].plot(self._points_df['tau'], label='tau')
-        ax[2].set_xlim([0, len(self._points_df)])
+        ax[2].plot(self._points_df.loc[flag,'tau'], label='tau')
+        ax[2].set_xlim([0, len(flag)-1])
         ax[2].set_ylabel('ms')
         ax[2].set_xlabel('Heart beat index')
+        ax[2].grid(axis='x')
         ax[2].legend()
         
-        ax[3].plot(self._points_df['iT'], label='iT')
-        ax[3].set_xlim([0, len(self._points_df)])
+        ax[3].plot(self._points_df.loc[flag,'iT'], label='iT')
+        ax[3].set_xlim([0, len(flag)-1])
         ax[3].set_ylabel('Pulse duration [s]')
         ax[3].set_xlabel('Heart beat index')
-        
+        ax[3].grid(axis='x')
         ax3_2  = ax[3].twinx()
         ax3_2.plot(self._points_df['iHR'], '-.r', label='iHR')
         ax3_2.set_ylabel('HR [beats/min]', color='tab:red')
         
         ax[3].legend()
-        
-        self._df['Acc'] = (self._df['ACC x [centi g]']**2.0 + self._df['ACC y [centi g]']**2.0 + self._df['ACC z [centi g]']**2.0) ** 0.5 / 100.
-        
-        ax[4].plot(self._df.index, self._df['Acc'], label='iT')
-        ax[4].set_xlim([self._df.index[0], self._df.index[-1]])
-        ax[4].set_xlabel('Time')
-        ax[4].set_ylabel('Acc [G]')
         
         fig.tight_layout()
         plt.show()
