@@ -367,7 +367,6 @@ class analyseGiessen:
         self._points_df['esp']   = pfield[self._points_df['esp_ind'].values]
         self._points_df['eivc']  = pfield[self._points_df['eivc_ind'].values]
         self._points_df['epad']  = pfield[self._points_df['epad_ind'].values]
-        self._points_df['epad']     = pfield['fcPressure'][temp].values
         
         ################################
         self._points_df['a_alpha'] = self._points_df['min_dpdt'] * self._t_resolution
