@@ -310,9 +310,12 @@ class analyseGiessen:
         self._points_df['max_dpdt'] = temp2['peak_heights'].astype(np.float64)
         
         self._points_df['dia_ind'] = 0
+        self._points_df['eivc_ind'] = 0
+        self._points_df['esp_ind']  = 0
         
-        pfield  = self._df['fcPressure'].values.copy()
-        dpfield = self._df['fdpdt'].values.copy()
+        pfield   = self._df['fcPressure'].values.copy()
+        dpfield  = self._df['fdpdt'].values.copy()
+        d2pfield = self._df['fd2pdt2'].values.copy()
         
         for i in range(len(self._points_df)):
             a_epad_ind_i   = self._points_df.loc[i, 'a_epad_ind']
@@ -320,13 +323,19 @@ class analyseGiessen:
                 a_epad_ind_i_1 = self._points_df.loc[i+1, 'a_epad_ind']
             except:
                 a_epad_ind_i_1 = -1 
-            
             temp = np.where((dpfield[a_epad_ind_i:a_epad_ind_i_1] >= 0.0) & (pfield[a_epad_ind_i:a_epad_ind_i_1] <= pfield[a_epad_ind_i:a_epad_ind_i_1].min() + 10.))
             try:
                 self._points_df['dia_ind'].values[i] = int(temp[0][0]) + a_epad_ind_i
             except:
                 self._points_df['dia_ind'].values[i] = a_epad_ind_i
                 
+            epad_ind = self._points_df.loc[i, 'epad_ind']
+            sys_ind  = self._points_df.loc[i, 'sys_ind']
+            temp, temp2 = find_peaks(d2pfield[epad_ind:sys_ind], height=height_d2pdt2)
+            try:
+                self._points_df['dia_ind'].values[i] = int(temp[0]) + epad_ind
+            except:
+                self._points_df['dia_ind'].values[i] = epad_ind
             
         
     def plot_pressures(self, start=0, finish=-1, non_filter=True, plot_features=True, fontsize=10):
