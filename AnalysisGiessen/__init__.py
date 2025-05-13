@@ -26,6 +26,11 @@ class analyseGiessen:
             self._df['Temperature'] = self.df['Sondentemperatur [dezi °C]'] / 10.
             
             self._df.drop(['Druck [dezi mmHg]', 'Druck kompensiert [dezi mmHg]'], axis=1, inplace=True)
+            
+            if 'ACC x [centi g]' not in self._df.columns:
+                self._df.columns['ACC x [centi g]'] = 0.0
+                self._df.columns['ACC y [centi g]'] = 0.0
+                self._df.columns['ACC z [centi g]'] = 0.0
         else:
             self._df = df.copy()
         
