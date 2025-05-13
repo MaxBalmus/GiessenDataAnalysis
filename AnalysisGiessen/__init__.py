@@ -312,12 +312,13 @@ class analyseGiessen:
         self._points_df['a_epad']     = self._df['fcPressure'][temp].values
         self._points_df['min_dpdt']   = -temp2['peak_heights'].astype(np.float64)
         
-        temp, temp2 = find_peaks(self._df['fdpdt'], height=height_dpdt, distance=distance)
-        self._points_df['epad_ind'] = temp.astype(np.int64)
-        self._points_df['epad']     = self._df['fcPressure'][temp].values
-        self._points_df['max_dpdt'] = temp2['peak_heights'].astype(np.float64)
+        # temp, temp2 = find_peaks(self._df['fdpdt'], height=height_dpdt, distance=distance)
+        # self._points_df['epad_ind'] = temp.astype(np.int64)
+        # self._points_df['epad']     = self._df['fcPressure'][temp].values
+        # self._points_df['max_dpdt'] = temp2['peak_heights'].astype(np.float64)
         
-        self._points_df['dia_ind'] = 0
+        self._points_df['epad_ind'] = 0
+        self._points_df['dia_ind']  = 0
         self._points_df['eivc_ind'] = 0
         self._points_df['esp_ind']  = 0
         
@@ -326,6 +327,14 @@ class analyseGiessen:
         d2pfield = self._df['fd2pdt2'].values.copy()
         
         for i in range(len(self._points_df)):
+            edp_ind = self._points_df.loc[i, 'edp_ind']
+            sys_ind = self._points_df.loc[i, 'sys_ind']
+            temp, _ = find_peaks(self._df['fdpdt'].values[edp_ind:sys_ind], height=height_dpdt, distance=distance)
+            try:
+                self._points_df['epad_ind'].values[i] = int(temp[0]) + sys_ind
+            except:
+                self._points_df['epad_ind'].values[i] = sys_ind
+            
             a_epad_ind_i   = self._points_df.loc[i, 'a_epad_ind']
             try:
                 a_epad_ind_i_1 = self._points_df.loc[i+1, 'a_epad_ind']
@@ -338,7 +347,6 @@ class analyseGiessen:
                 self._points_df['dia_ind'].values[i] = a_epad_ind_i
                 
             epad_ind = self._points_df.loc[i, 'epad_ind']
-            sys_ind  = self._points_df.loc[i, 'sys_ind']
             temp, temp2 = find_peaks(-d2pfield[epad_ind:sys_ind], height=height_d2pdt2)
             try:
                 self._points_df['eivc_ind'].values[i] = int(temp[0]) + epad_ind
@@ -355,6 +363,7 @@ class analyseGiessen:
         self._points_df['dia']   = pfield[self._points_df['dia_ind'].values]
         self._points_df['esp']   = pfield[self._points_df['esp_ind'].values]
         self._points_df['eivc']  = pfield[self._points_df['eivc_ind'].values]
+        self._points_df['epad']  = pfield[self._points_df['epad_ind'].values]
         
         ################################
         self._points_df['a_alpha'] = self._points_df['min_dpdt'] * self._t_resolution
