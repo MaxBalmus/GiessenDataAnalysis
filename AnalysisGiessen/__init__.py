@@ -102,7 +102,7 @@ class analyseGiessen:
         self.start_at_edp = start_at_edp
         
         if not use_filter: 
-            pressure_ind = self._df['Pressure'].values.copy()
+            pressure_ind = self._df['cPressure'].values.copy()
             dpdt_4_ind   = self._df['dpdt'].values.copy()
             d2pdt2_4_ind = self._df['d2pdt2'].values.copy()
         else:
@@ -116,7 +116,7 @@ class analyseGiessen:
             dpdt_4_exp   = self._df['fdpdt'].values.copy()
             
         if export_true_p:
-            pressure_exp = self._df['Pressure'].values.copy()
+            pressure_exp = self._df['cPressure'].values.copy()
         else:
             pressure_exp = self._df['fcPressure'].values.copy()
         
@@ -125,6 +125,7 @@ class analyseGiessen:
         sys_ind  = np.zeros(a_epad_ind.shape, dtype=np.int64)
         esp_ind  = np.zeros(a_epad_ind.shape, dtype=np.int64)
         edp_ind  = np.zeros(a_epad_ind.shape, dtype=np.int64)
+        eivc_ind = np.zeros(a_epad_ind.shape, dtype=np.int64)
         
         for i, a_epad in enumerate(a_epad_ind[:-1]):
             # Compute epad
@@ -202,12 +203,33 @@ class analyseGiessen:
                     edp_ind[i] = temp    + dia_ind[i]
                 else:
                     edp_ind[i] = dia_ind[i]
+                    
+            # Compute eivc
+            temp  = []
+            field = -d2pdt2_4_ind[epad_ind[i]:sys_ind[i]]
+            while len(temp) == 0 and k < 10:
+                temp, _ = find_peaks(field, height=height)
+                height = height * 0.8
+                k += 1
+                if isinstance(temp, np.int64) : temp = [temp,]
+            # raise Exception(epad_ind[i], sys_ind[i], temp)
+            try:
+                temp2   = np.argmin(pressure_ind[epad_ind[i] + temp])
+                eivc_ind[i] = temp[temp2] + epad_ind[i]
+            except:
+                temp, _ = find_peaks(-self._df['d2pdt2'].values[epad_ind[i]:sys_ind[i+1]], height=height_d2pdt2)
+                try:
+                    temp2   = np.argmin(pressure_ind[epad_ind[i] + temp])
+                    eivc_ind[i] = temp[temp2] + epad_ind[i]
+                except:
+                    eivc_ind[i] = epad_ind[i]
                 
         self._points_df['epad_ind'] = epad_ind
         self._points_df['dia_ind']  = dia_ind
         self._points_df['sys_ind']  = sys_ind
         self._points_df['esp_ind']  = esp_ind
         self._points_df['edp_ind']  = edp_ind
+        self._points_df['eivc_ind'] = eivc_ind
         
         shift = 1
         temp = self._points_df.copy()
@@ -267,11 +289,13 @@ class analyseGiessen:
         #####################################
         self._points_df['edp']     = pressure_exp[self._points_df['edp_ind'].values.astype(int)] 
         #####################################
+        self._points_df['eivc']    = pressure_exp[self._points_df['eivc_ind'].values.astype(int)] 
+        #####################################
         
         return
         
     
-    def plot_pressures(self, start=0, finish=-1, non_filter=True, plot_features=True):
+    def plot_pressures(self, start=0, finish=-1, non_filter=True, plot_features=True, fontsize=10):
         finish = len(self._df) + finish if finish <= -1 else finish
         
         a_epad_ind = self._points_df['a_epad_ind'].values.astype(int)
@@ -292,6 +316,10 @@ class analyseGiessen:
         edp_ind = self._points_df['edp_ind'].values.astype(int)
         edp_ind = edp_ind[(edp_ind >= start) & (edp_ind < finish)]
         
+        eivc_ind = self._points_df['eivc_ind'].values.astype(int)
+        eivc_ind = eivc_ind[(eivc_ind >= start) & (eivc_ind < finish)]
+        
+        plt.rcParams.update({'font.size': fontsize})
         fig, ax = plt.subplots(figsize=(20,21), nrows=7)
 
         ax[0].grid(axis='x')
@@ -301,13 +329,14 @@ class analyseGiessen:
         ax[0].legend()
         
         if plot_features:
-            for a_epad, epad, dia, sys, esp, edp in zip(a_epad_ind, epad_ind, dia_ind, sys_ind, esp_ind, edp_ind):
+            for a_epad, epad, dia, sys, esp, edp, eivc in zip(a_epad_ind, epad_ind, dia_ind, sys_ind, esp_ind, edp_ind, eivc_ind):
                 ax[0].axvline(self._df.index[a_epad], color=mcolors.TABLEAU_COLORS['tab:olive'], linewidth=4, linestyle=':')
                 ax[0].axvline(self._df.index[epad],   color=mcolors.TABLEAU_COLORS['tab:blue'],  linewidth=4, linestyle=':')
                 ax[0].axvline(self._df.index[dia],    color=mcolors.TABLEAU_COLORS['tab:red'],   linewidth=4, linestyle=':')
                 ax[0].axvline(self._df.index[sys],    color=mcolors.TABLEAU_COLORS['tab:purple'],linewidth=4, linestyle=':')
                 ax[0].axvline(self._df.index[esp],    color='r',                                 linewidth=1, linestyle='-')
                 ax[0].axvline(self._df.index[edp],    color='g',                                 linewidth=1, linestyle='-')
+                ax[0].axvline(self._df.index[eivc],   color='m',                                 linewidth=1, linestyle='-')
         
         self._df['Noise']  = self._df['Pressure'] - self._df['fPressure']
         self._df['cNoise'] = self._df['cPressure'] - self._df['fcPressure']
@@ -337,7 +366,8 @@ class analyseGiessen:
                 ax[3].axvline(self._df.index[a_epad], color=mcolors.TABLEAU_COLORS['tab:olive'], linewidth=4, linestyle=':')
                 ax[3].axvline(self._df.index[epad],   color=mcolors.TABLEAU_COLORS['tab:blue'],  linewidth=4, linestyle=':')
                 ax[3].axvline(self._df.index[dia],    color=mcolors.TABLEAU_COLORS['tab:red'],   linewidth=4, linestyle=':')
-            
+                ax[3].axvline(self._df.index[sys],    color=mcolors.TABLEAU_COLORS['tab:purple'],  linewidth=4, linestyle=':')
+
 
         ax[4].grid(axis='x')
         ax[4].plot(self._df.index[start:finish], self._df['fd2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='-')
@@ -346,28 +376,31 @@ class analyseGiessen:
         ax[4].legend()
         
         if plot_features:
-            for sys, a_epad, esp, edp in zip(sys_ind, a_epad_ind, esp_ind, edp_ind):
-                ax[4].axvline(self._df.index[sys],    color=mcolors.TABLEAU_COLORS['tab:purple'],  linewidth=4, linestyle=':')
-                ax[4].axvline(self._df.index[a_epad], color=mcolors.TABLEAU_COLORS['tab:olive'],   linewidth=4, linestyle=':')
+            for sys, a_epad, esp, edp, eivc in zip(sys_ind, a_epad_ind, esp_ind, edp_ind, eivc_ind):
+                # ax[4].axvline(self._df.index[a_epad], color=mcolors.TABLEAU_COLORS['tab:olive'],   linewidth=4, linestyle=':')
                 ax[4].axvline(self._df.index[esp],    color='r',                                   linewidth=1, linestyle='-')
                 ax[4].axvline(self._df.index[edp],    color='g',                                   linewidth=1, linestyle='-')
+                ax[4].axvline(self._df.index[eivc],   color='m',                                   linewidth=1, linestyle='-')
                 
         self._df['Acc'] = (self._df['ACC x [centi g]']**2.0 + self._df['ACC y [centi g]']**2.0 + self._df['ACC z [centi g]']**2.0) ** 0.5 / 100.
         
         ax[5].plot(self._df.index[start:finish], self._df['Acc'].iloc[start:finish], label='Acceleration')
+        ax[5].grid(axis='x')
         ax[5].set_ylabel('Acc [G]')
         
         ax[6].plot(self._df.index[start:finish], self._df['Temperature'].iloc[start:finish], label='Temp.')
-        ax[6].set_xlabel('Temp. [$^oC$]')
-        ax[6].set_xlabel('Time')
+        ax[6].set_ylabel('Temp. [$^oC$]')
+        ax[6].set_xlabel('Time [H:M:S]')
+        ax[6].grid(axis='x')
 
-        
         fig.tight_layout()
         plt.show()
         return
     
     
-    def plot_single_pulse_metrics(self, start=0, finish=-1):
+    
+    def plot_single_pulse_metrics(self, start=0, finish=-1, fontsize=10):
+        plt.rcParams.update({'font.size': fontsize})
         fig, ax = plt.subplots(nrows=4, figsize=(20, 12))
         finish = len(self._df) + finish if finish <= -1 else finish
         
@@ -378,7 +411,8 @@ class analyseGiessen:
         ax[0].plot(self._points_df.loc[flag, 'sys'],  label='sys')
         ax[0].plot(self._points_df.loc[flag, 'epad'], label='epad')
         ax[0].plot(self._points_df.loc[flag, 'esp'],  label='esp')
-        ax[0].plot(self._points_df.loc[flag,'edp'],  label='edp')
+        ax[0].plot(self._points_df.loc[flag, 'edp'],  label='edp')
+        ax[0].plot(self._points_df.loc[flag, 'eivc'], label='eivc')
         ax[0].set_xlim([0, len(flag)-1])
         ax[0].set_ylabel('Pressure [mmHg]')
         ax[0].set_xlabel('Heart beat index')
