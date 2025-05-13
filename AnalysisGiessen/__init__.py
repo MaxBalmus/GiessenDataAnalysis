@@ -369,6 +369,10 @@ class analyseGiessen:
         self._points_df['t_max_p']    = (self._points_df['sys_ind'] - ref) * self._t_resolution
         self._points_df['t_dia']      = (self._points_df['dia_ind'] - ref) * self._t_resolution
         
+        self._points_df['t_sys'] = (self._points_df['sys_ind'] - ref) * self._t_resolution
+        self._points_df['t_esp'] = (self._points_df['esp_ind'] - ref) * self._t_resolution
+        self._points_df['t_eivc']= (self._points_df['eivc_ind']- ref) * self._t_resolution
+        
     def plot_pressures(self, start=0, finish=-1, non_filter=True, plot_features=True, fontsize=10):
         finish = len(self._df) + finish if finish <= -1 else finish
         
