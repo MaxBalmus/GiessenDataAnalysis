@@ -309,8 +309,19 @@ class analyseGiessen:
         self._points_df['epad']     = self._df['fcPressure'][temp].values
         self._points_df['max_dpdt'] = temp2['peak_heights'].astype(np.float64)
         
-        for i, sys_ind in enumerate(self._points_df['sys_ind'].values[:-1]):
-            pass
+        for i, edp_ind in enumerate(self._points_df['edp_ind'].values[:-1]):
+            temp_dpdt = self._df['fdpdt'].values.copy()
+            a_epad_ind_i   = self._points_df.loc[i, 'a_epad_ind']
+            a_epad_ind_i_1 = self._points_df.loc[i+1, 'a_epad_ind']
+            temp = np.where(
+                        (self._df['fdpdt'].values[a_epad_ind_i:a_epad_ind_i_1] >= 0.0) 
+                        & 
+                        (self._df['fcPressure'].values[a_epad_ind_i:a_epad_ind_i_1] <= self._df['fcPressure'].values[a_epad_ind_i:a_epad_ind_i_1].min() + 10.)
+                        )
+            try:
+                self._points_df['dia_ind'].values[i] = int(temp[0][0]) + a_epad_ind_i
+            except:
+                self._points_df['dia_ind'].values[i] = a_epad_ind_i
         
     def plot_pressures(self, start=0, finish=-1, non_filter=True, plot_features=True, fontsize=10):
         finish = len(self._df) + finish if finish <= -1 else finish
