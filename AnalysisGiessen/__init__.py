@@ -291,13 +291,21 @@ class analyseGiessen:
         
         return
     
-    def compute_points_of_interest_2(self, height=40, height_d2pdt2=1000, distance=5, sim_len=101, use_filter=True, export_true_derivates=False, exclusion_list=['dia'], export_true_p=False, start_at_edp=False):
+    def compute_points_of_interest_2(self, height=40, height_dpdt=100, height_d2pdt2=1000, distance=90, sim_len=100, use_filter=True, export_true_derivates=False, exclusion_list=['dia'], export_true_p=False, start_at_edp=False):
         temp, temp2 = find_peaks(self._df['fcPressure'], distance=distance, height=height)
         self._points_df['sys_ind'] = temp.astype(np.int64)
         self._points_df['sys']     = temp2['peak_heights'].astype(np.float64)
         
         self._points_df['edp_ind'] = np.arange(0, len(self._df['fcPressure']), sim_len)
         self._points_df['edp']     = self._df['fcPressure'][self._points_df['edp_ind']].values
+        
+        temp, temp2 = find_peaks(-self._df['fdpdt'], height=height_dpdt, distance=distance)
+        self._points_df['a_epad_ind'] = temp.astype(np.int64)
+        self._points_df['a_epad']     = temp2['peak_heights'].astype(np.float64)
+        
+        temp, temp2 = find_peaks(self._df['fdpdt'], height=height_dpdt, distance=distance)
+        self._points_df['epad_ind'] = temp.astype(np.int64)
+        self._points_df['epad']     = temp2['peak_heights'].astype(np.float64)
         
         for i, sys_ind in enumerate(self._points_df['sys_ind'].values[:-1]):
             pass
