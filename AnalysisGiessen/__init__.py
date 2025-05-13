@@ -329,11 +329,13 @@ class analyseGiessen:
         for i in range(len(self._points_df)):
             edp_ind = self._points_df.loc[i, 'edp_ind']
             sys_ind = self._points_df.loc[i, 'sys_ind']
-            temp, _ = find_peaks(self._df['fdpdt'].values[edp_ind:sys_ind], height=height_dpdt, distance=distance)
+            temp, temp2 = find_peaks(self._df['fdpdt'].values[edp_ind:sys_ind], height=height_dpdt, distance=distance)
             try:
                 self._points_df['epad_ind'].values[i] = int(temp[0]) + sys_ind
+                self._points_df['max_dpdt'].values[i] = temp2['peak_heights'][0]
             except:
                 self._points_df['epad_ind'].values[i] = sys_ind
+                self._points_df['max_dpdt'].values[i] = 0.0
             
             a_epad_ind_i   = self._points_df.loc[i, 'a_epad_ind']
             try:
@@ -364,6 +366,7 @@ class analyseGiessen:
         self._points_df['esp']   = pfield[self._points_df['esp_ind'].values]
         self._points_df['eivc']  = pfield[self._points_df['eivc_ind'].values]
         self._points_df['epad']  = pfield[self._points_df['epad_ind'].values]
+        self._points_df['epad']     = pfield['fcPressure'][temp].values
         
         ################################
         self._points_df['a_alpha'] = self._points_df['min_dpdt'] * self._t_resolution
