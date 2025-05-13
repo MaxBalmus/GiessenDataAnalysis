@@ -136,7 +136,6 @@ class analyseGiessen:
                 epad_ind[i] = a_epad + temp + self.epad_buffer
                             
             # Compute dia
-            # if not except_filter_dia:
             if 'dia' not in exclusion_list:
                 temp = np.where(
                             (dpdt_4_ind[a_epad:a_epad_ind[i+1]] >= 0.0) 
@@ -282,10 +281,8 @@ class analyseGiessen:
         #####################################
         self._points_df['iT']      = (np.roll(ref.values, shift=-1) - ref.values) * self._t_resolution
         self._points_df.loc[len(self._points_df)-1, 'iT'] = (len(pressure_exp) - 1 - ref.values[-1])* self._t_resolution
-        # raise Exception()
         #####################################
         self._points_df['iHR']     = 60. / self._points_df['iT']
-        # self._points_df.loc[0, 'iHR'] = 0
         #####################################
         self._points_df['edp']     = pressure_exp[self._points_df['edp_ind'].values.astype(int)] 
         #####################################
@@ -293,8 +290,18 @@ class analyseGiessen:
         #####################################
         
         return
-        
     
+    def compute_points_of_interest_2(self, height=40, height_d2pdt2=1000, distance=5, sim_len=101, use_filter=True, export_true_derivates=False, exclusion_list=['dia'], export_true_p=False, start_at_edp=False):
+        temp, temp2 = find_peaks(self._df['fcPressure'], distance=distance, height=height)
+        self._points_df['sys_ind'] = temp.astype(np.int64)
+        self._points_df['sys']     = temp2['peak_heights'].astype(np.float64)
+        
+        self._points_df['edp_ind'] = np.arange(0, len(self._df['fcPressure']), sim_len)
+        self._points_df['edp']     = self._df['fcPressure'].iloc[self._points_df['edp_ind']]
+        
+        for i, sys_ind in enumerate(self._points_df['sys_ind'].values[:-1]):
+            pass
+        
     def plot_pressures(self, start=0, finish=-1, non_filter=True, plot_features=True, fontsize=10):
         finish = len(self._df) + finish if finish <= -1 else finish
         
