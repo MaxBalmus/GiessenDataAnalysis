@@ -344,24 +344,30 @@ class analyseGiessen:
             except:
                 self._points_df['esp_ind'].values[i] = sys_ind
             
-            self._points_df['dia']   = pfield[self._points_df['dia_ind'].values]
-            self._points_df['esp']   = pfield[self._points_df['esp_ind'].values]
-            self._points_df['eivc']  = pfield[self._points_df['eivc_ind'].values]
-            
-            ################################
-            self._points_df['a_alpha'] = self._points_df['min_dpdt'] * self._t_resolution
-            self._points_df['b_alpha'] = self._points_df['a_epad'] - self._points_df['a_alpha'] * self._points_df['a_epad_ind']
-            ################################
-            self._points_df['a_beta'] = self._points_df['max_dpdt'] * self._t_resolution
-            self._points_df['b_beta'] = self._points_df['epad'] - self._points_df['a_beta'] * self._points_df['epad_ind']
-            ################################
-            self._points_df['cross_ind'] = - (self._points_df['b_alpha'] - self._points_df['b_beta']) / (self._points_df['a_alpha'] - self._points_df['a_beta'])
-            self._points_df['cross_max']     = self._points_df['a_beta'] * self._points_df['cross_ind'] + self.points_df['b_beta']
-            
-            self._points_df['A_p']     = (self._points_df['epad'] + self._points_df['a_epad']) / 2.
-            self._points_df['P_max']   = (self._points_df['cross_max'] - self._points_df['A_p']) * 2. / np.pi + self._points_df['A_p']
-            ####################################
-            self._points_df['EF']      = 1.0 - self._points_df['esp'] / self._points_df['P_max']
+        self._points_df['dia']   = pfield[self._points_df['dia_ind'].values]
+        self._points_df['esp']   = pfield[self._points_df['esp_ind'].values]
+        self._points_df['eivc']  = pfield[self._points_df['eivc_ind'].values]
+        
+        ################################
+        self._points_df['a_alpha'] = self._points_df['min_dpdt'] * self._t_resolution
+        self._points_df['b_alpha'] = self._points_df['a_epad'] - self._points_df['a_alpha'] * self._points_df['a_epad_ind']
+        ################################
+        self._points_df['a_beta'] = self._points_df['max_dpdt'] * self._t_resolution
+        self._points_df['b_beta'] = self._points_df['epad'] - self._points_df['a_beta'] * self._points_df['epad_ind']
+        ################################
+        self._points_df['cross_ind'] = - (self._points_df['b_alpha'] - self._points_df['b_beta']) / (self._points_df['a_alpha'] - self._points_df['a_beta'])
+        self._points_df['cross_max']     = self._points_df['a_beta'] * self._points_df['cross_ind'] + self.points_df['b_beta']
+        
+        self._points_df['A_p']     = (self._points_df['epad'] + self._points_df['a_epad']) / 2.
+        self._points_df['P_max']   = (self._points_df['cross_max'] - self._points_df['A_p']) * 2. / np.pi + self._points_df['A_p']
+        ####################################
+        self._points_df['EF']      = 1.0 - self._points_df['esp'] / self._points_df['P_max']
+        
+        ref = self._points_df['edp_ind']
+        self._points_df['t_max_dpdt'] = (self._points_df['epad_ind'] - ref) * self._t_resolution
+        self._points_df['t_min_dpdt'] = (self._points_df['a_epad_ind'] - ref) * self._t_resolution
+        self._points_df['t_max_p']    = (self._points_df['sys_ind'] - ref) * self._t_resolution
+        self._points_df['t_dia']      = (self._points_df['dia_ind'] - ref) * self._t_resolution
         
     def plot_pressures(self, start=0, finish=-1, non_filter=True, plot_features=True, fontsize=10):
         finish = len(self._df) + finish if finish <= -1 else finish
