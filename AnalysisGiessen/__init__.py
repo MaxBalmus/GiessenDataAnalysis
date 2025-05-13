@@ -31,9 +31,9 @@ class analyseGiessen:
             self._df = df.copy()
         
         if 'ACC x [centi g]' not in self._df.columns:
-            self._df.columns['ACC x [centi g]'] = 0.0
-            self._df.columns['ACC y [centi g]'] = 0.0
-            self._df.columns['ACC z [centi g]'] = 0.0
+            self._df['ACC x [centi g]'] = 0.0
+            self._df['ACC y [centi g]'] = 0.0
+            self._df['ACC z [centi g]'] = 0.0
         
         self._t_resolution = 0.004 if t_resolution is None else t_resolution
         
