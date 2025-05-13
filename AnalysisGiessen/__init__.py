@@ -321,6 +321,7 @@ class analyseGiessen:
         self._points_df['dia_ind']  = 0
         self._points_df['eivc_ind'] = 0
         self._points_df['esp_ind']  = 0
+        self._points_df['max_dpdt'] = 0
         
         pfield   = self._df['fcPressure'].values.copy()
         dpfield  = self._df['fdpdt'].values.copy()
