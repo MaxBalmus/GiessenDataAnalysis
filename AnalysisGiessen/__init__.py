@@ -333,9 +333,9 @@ class analyseGiessen:
             sys_ind  = self._points_df.loc[i, 'sys_ind']
             temp, temp2 = find_peaks(d2pfield[epad_ind:sys_ind], height=height_d2pdt2)
             try:
-                self._points_df['dia_ind'].values[i] = int(temp[0]) + epad_ind
+                self._points_df['eivc_ind'].values[i] = int(temp[0]) + epad_ind
             except:
-                self._points_df['dia_ind'].values[i] = epad_ind
+                self._points_df['eivc_ind'].values[i] = epad_ind
             
         
     def plot_pressures(self, start=0, finish=-1, non_filter=True, plot_features=True, fontsize=10):
