@@ -309,6 +309,8 @@ class analyseGiessen:
         self._points_df['epad']     = self._df['fcPressure'][temp].values
         self._points_df['max_dpdt'] = temp2['peak_heights'].astype(np.float64)
         
+        self._points_df['dia_ind'] = 0
+        
         for i, edp_ind in enumerate(self._points_df['edp_ind'].values[:-1]):
             temp_dpdt = self._df['fdpdt'].values.copy()
             a_epad_ind_i   = self._points_df.loc[i, 'a_epad_ind']
