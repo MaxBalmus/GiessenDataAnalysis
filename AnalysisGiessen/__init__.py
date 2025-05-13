@@ -314,7 +314,7 @@ class analyseGiessen:
         pfield  = self._df['fcPressure'].values.copy()
         dpfield = self._df['fdpdt'].values.copy()
         
-        for i, edp_ind in enumerate(self._points_df['edp_ind'].values[:-1]):
+        for i in range(len(self._points_df)):
             a_epad_ind_i   = self._points_df.loc[i, 'a_epad_ind']
             a_epad_ind_i_1 = self._points_df.loc[i+1, 'a_epad_ind']
             
