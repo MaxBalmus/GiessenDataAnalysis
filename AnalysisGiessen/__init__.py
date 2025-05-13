@@ -34,6 +34,8 @@ class analyseGiessen:
             self._df['ACC x [centi g]'] = 0.0
             self._df['ACC y [centi g]'] = 0.0
             self._df['ACC z [centi g]'] = 0.0
+        if 'Temperature' not in self._df.columns:
+            self._df['Temperature'] = 0.0
         
         self._t_resolution = 0.004 if t_resolution is None else t_resolution
         
