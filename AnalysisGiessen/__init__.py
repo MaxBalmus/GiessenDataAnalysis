@@ -332,7 +332,7 @@ class analyseGiessen:
             sys_ind = self._points_df.loc[i, 'sys_ind']
             temp, temp2 = find_peaks(self._df['fdpdt'].values[edp_ind:sys_ind], height=height_dpdt, distance=distance)
             try:
-                self._points_df['epad_ind'].values[i] = int(temp[0]) + sys_ind
+                self._points_df['epad_ind'].values[i] = int(temp[0]) + edp_ind
                 self._points_df['max_dpdt'].values[i] = temp2['peak_heights'][0]
             except:
                 self._points_df['epad_ind'].values[i] = sys_ind
