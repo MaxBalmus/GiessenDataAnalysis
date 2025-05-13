@@ -297,7 +297,7 @@ class analyseGiessen:
         self._points_df['sys']     = temp2['peak_heights'].astype(np.float64)
         
         self._points_df['edp_ind'] = np.arange(0, len(self._df['fcPressure']), sim_len)
-        self._points_df['edp']     = self._df['fcPressure'].iloc[self._points_df['edp_ind']]
+        self._points_df['edp']     = self._df['fcPressure'][self._points_df['edp_ind']].values
         
         for i, sys_ind in enumerate(self._points_df['sys_ind'].values[:-1]):
             pass
