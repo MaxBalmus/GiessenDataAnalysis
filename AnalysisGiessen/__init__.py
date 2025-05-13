@@ -344,6 +344,8 @@ class analyseGiessen:
             except:
                 self._points_df['esp_ind'].values[i] = sys_ind
             
+            self._points_df['dia']  = pfield[self._points_df['dia_ind'].values]
+            
         
     def plot_pressures(self, start=0, finish=-1, non_filter=True, plot_features=True, fontsize=10):
         finish = len(self._df) + finish if finish <= -1 else finish
