@@ -311,19 +311,20 @@ class analyseGiessen:
         
         self._points_df['dia_ind'] = 0
         
+        pfield  = self._df['fcPressure'].values.copy()
+        dpfield = self._df['fdpdt'].values.copy()
+        
         for i, edp_ind in enumerate(self._points_df['edp_ind'].values[:-1]):
-            temp_dpdt = self._df['fdpdt'].values.copy()
             a_epad_ind_i   = self._points_df.loc[i, 'a_epad_ind']
             a_epad_ind_i_1 = self._points_df.loc[i+1, 'a_epad_ind']
-            temp = np.where(
-                        (self._df['fdpdt'].values[a_epad_ind_i:a_epad_ind_i_1] >= 0.0) 
-                        & 
-                        (self._df['fcPressure'].values[a_epad_ind_i:a_epad_ind_i_1] <= self._df['fcPressure'].values[a_epad_ind_i:a_epad_ind_i_1].min() + 10.)
-                        )
+            
+            temp = np.where((dpfield[a_epad_ind_i:a_epad_ind_i_1] >= 0.0) & (pfield[a_epad_ind_i:a_epad_ind_i_1] <= pfield[a_epad_ind_i:a_epad_ind_i_1].min() + 10.))
             try:
                 self._points_df['dia_ind'].values[i] = int(temp[0][0]) + a_epad_ind_i
             except:
                 self._points_df['dia_ind'].values[i] = a_epad_ind_i
+                
+            
         
     def plot_pressures(self, start=0, finish=-1, non_filter=True, plot_features=True, fontsize=10):
         finish = len(self._df) + finish if finish <= -1 else finish
