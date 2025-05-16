@@ -313,10 +313,6 @@ class analyseGiessen:
         self._points_df['a_epad']     = self._df['fcPressure'][temp].values
         self._points_df['min_dpdt']   = -temp2['peak_heights'].astype(np.float64)
         
-        # temp, temp2 = find_peaks(self._df['fdpdt'], height=height_dpdt, distance=distance)
-        # self._points_df['epad_ind'] = temp.astype(np.int64)
-        # self._points_df['epad']     = self._df['fcPressure'][temp].values
-        # self._points_df['max_dpdt'] = temp2['peak_heights'].astype(np.float64)
         
         self._points_df['epad_ind'] = 0
         self._points_df['dia_ind']  = 0
