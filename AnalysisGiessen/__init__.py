@@ -302,6 +302,15 @@ class analyseGiessen:
     
     def compute_points_of_interest_2(self, height=40, height_dpdt=100, height_d2pdt2=1000, distance=90, sim_len=100, mask=None):
         pressure4sys = self._df['fcPressure'].copy()
+        
+        pfield   = self._df['fcPressure'].values.copy()
+        dpfield  = self._df['fdpdt'].values.copy()
+        d2pfield = self._df['fd2pdt2'].values.copy()
+        
+        dpfield_masked = dpfield.copy()
+        if mask is not None:
+            dpfield_masked[mask] = 0.0
+        
         if mask is not None: pressure4sys[mask] = pressure4sys[0]
         temp, temp2 = find_peaks(pressure4sys, distance=distance, height=height)
         self._points_df['sys_ind'] = temp.astype(np.int64) 
@@ -310,7 +319,7 @@ class analyseGiessen:
         self._points_df['edp_ind'] = np.arange(0, len(self._df['fcPressure']), sim_len)
         self._points_df['edp']     = self._df['fcPressure'][self._points_df['edp_ind']].values
         
-        temp, temp2 = find_peaks(-self._df['fdpdt'], height=height_dpdt, distance=distance)
+        temp, temp2 = find_peaks(-dpfield_masked, height=height_dpdt, distance=distance)
         self._points_df['a_epad_ind'] = temp.astype(np.int64)
         self._points_df['a_epad']     = self._df['fcPressure'][temp].values
         self._points_df['min_dpdt']   = -temp2['peak_heights'].astype(np.float64)
@@ -322,17 +331,12 @@ class analyseGiessen:
         self._points_df['esp_ind']  = 0
         self._points_df['max_dpdt'] = 0
         
-        pfield   = self._df['fcPressure'].values.copy()
-        dpfield  = self._df['fdpdt'].values.copy()
-        d2pfield = self._df['fd2pdt2'].values.copy()
         
         for i in range(len(self._points_df)):
             edp_ind = self._points_df.loc[i, 'edp_ind']
             sys_ind = self._points_df.loc[i, 'sys_ind']
-            dpfield_masked = dpfield.copy()
-            if mask is not None:
-                dpfield_masked[mask] = 0.0
-            temp, temp2 = find_peaks(-dpfield_masked[edp_ind:sys_ind], height=height_dpdt, distance=distance)
+            
+            temp, temp2 = find_peaks(dpfield_masked[edp_ind:sys_ind], height=height_dpdt, distance=distance)
             try:
                 self._points_df['epad_ind'].values[i] = int(temp[0]) + edp_ind
                 self._points_df['max_dpdt'].values[i] = temp2['peak_heights'][0]
