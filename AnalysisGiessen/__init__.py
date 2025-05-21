@@ -342,7 +342,7 @@ class analyseGiessen:
                 a_epad_ind_i_1 = self._points_df.loc[i+1, 'a_epad_ind']
             except:
                 a_epad_ind_i_1 = -1 
-            temp = np.where((dpfield[a_epad_ind_i:(i+1)*sim_len] >= 0.0) & (pfield[a_epad_ind_i:a_epad_ind_i_1] <= pfield[a_epad_ind_i:a_epad_ind_i_1].min() + 10.))
+            temp = np.where((dpfield[a_epad_ind_i:(i+1)*sim_len] >= -1e-6) & (pfield[a_epad_ind_i:(i+1)*sim_len] <= pfield[a_epad_ind_i:(i+1)*sim_len].min() + 10.))
             try:
                 self._points_df['dia_ind'].values[i] = int(temp[0][0]) + a_epad_ind_i
             except:
