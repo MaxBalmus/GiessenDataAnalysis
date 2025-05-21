@@ -304,10 +304,10 @@ class analyseGiessen:
         pressure4sys = self._df['fcPressure']
         if mask is not None: pressure4sys[mask] = 0.0
         temp, temp2 = find_peaks(pressure4sys, distance=distance, height=height)
-        _reps = int(len(self._df['fcPressure']) / sim_len)
-        _step = int(len(temp) / _reps)
-        self._points_df['sys_ind'] = temp[0::_step].astype(np.int64)
-        self._points_df['sys']     = temp2['peak_heights'][0::_step].astype(np.float64)
+        # _reps = int(len(self._df['fcPressure']) / sim_len)
+        # _step = int(len(temp) / _reps)
+        self._points_df['sys_ind'] = temp.astype(np.int64) # temp[0::_step].astype(np.int64)
+        self._points_df['sys']     = temp2['peak_heights'].astype(np.float64) #  temp2['peak_heights'][0::_step].astype(np.float64)
         
         self._points_df['edp_ind'] = np.arange(0, len(self._df['fcPressure']), sim_len)
         self._points_df['edp']     = self._df['fcPressure'][self._points_df['edp_ind']].values
