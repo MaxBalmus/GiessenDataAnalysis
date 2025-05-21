@@ -302,8 +302,8 @@ class analyseGiessen:
     
     def compute_points_of_interest_2(self, height=40, height_dpdt=100, height_d2pdt2=1000, distance=90, sim_len=100):
         temp, temp2 = find_peaks(self._df['fcPressure'], distance=distance, height=height)
-        _reps = len(self._df['fcPressure']) / sim_len
-        _step = len(temp) / _reps
+        _reps = int(len(self._df['fcPressure']) / sim_len)
+        _step = int(len(temp) / _reps)
         self._points_df['sys_ind'] = temp[0::_step].astype(np.int64)
         self._points_df['sys']     = temp2['peak_heights'][0::_step].astype(np.float64)
         
