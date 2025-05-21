@@ -329,7 +329,10 @@ class analyseGiessen:
         for i in range(len(self._points_df)):
             edp_ind = self._points_df.loc[i, 'edp_ind']
             sys_ind = self._points_df.loc[i, 'sys_ind']
-            temp, temp2 = find_peaks(dpfield[edp_ind:sys_ind], height=height_dpdt, distance=distance)
+            dpfield_masked = dpfield.copy()
+            if mask is not None:
+                dpfield_masked[mask] = 0.0
+            temp, temp2 = find_peaks(dpfield_masked[edp_ind:sys_ind], height=height_dpdt, distance=distance)
             try:
                 self._points_df['epad_ind'].values[i] = int(temp[0]) + edp_ind
                 self._points_df['max_dpdt'].values[i] = temp2['peak_heights'][0]
@@ -338,9 +341,6 @@ class analyseGiessen:
                 self._points_df['max_dpdt'].values[i] = 0.0
             
             a_epad_ind_i   = self._points_df.loc[i, 'a_epad_ind']
-            dpfield_masked = dpfield.copy()
-            if mask is not None:
-                dpfield_masked[mask] = 0.0
             temp = np.where((dpfield_masked[a_epad_ind_i:(i+1)*sim_len] >= -1e-6) & (pfield[a_epad_ind_i:(i+1)*sim_len] <= pfield[a_epad_ind_i:(i+1)*sim_len].min() + 10.))
             try:
                 self._points_df['dia_ind'].values[i] = int(temp[0][0]) + a_epad_ind_i
