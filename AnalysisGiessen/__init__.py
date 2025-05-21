@@ -300,8 +300,10 @@ class analyseGiessen:
         
         return
     
-    def compute_points_of_interest_2(self, height=40, height_dpdt=100, height_d2pdt2=1000, distance=90, sim_len=100):
-        temp, temp2 = find_peaks(self._df['fcPressure'], distance=distance, height=height)
+    def compute_points_of_interest_2(self, height=40, height_dpdt=100, height_d2pdt2=1000, distance=90, sim_len=100, mask=None):
+        pressure4sys = self._df['fcPressure']
+        if mask is not None: pressure4sys[mask] = 0.0
+        temp, temp2 = find_peaks(pressure4sys, distance=distance, height=height)
         _reps = int(len(self._df['fcPressure']) / sim_len)
         _step = int(len(temp) / _reps)
         self._points_df['sys_ind'] = temp[0::_step].astype(np.int64)
