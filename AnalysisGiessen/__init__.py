@@ -301,7 +301,7 @@ class analyseGiessen:
         return
     
     def compute_points_of_interest_2(self, height=40, height_dpdt=100, height_d2pdt2=1000, distance=90, sim_len=100, mask=None):
-        pressure4sys = self._df['fcPressure']
+        pressure4sys = self._df['fcPressure'].copy()
         if mask is not None: pressure4sys[mask] = pressure4sys[0]
         temp, temp2 = find_peaks(pressure4sys, distance=distance, height=height)
         self._points_df['sys_ind'] = temp.astype(np.int64) 
@@ -342,7 +342,7 @@ class analyseGiessen:
                 a_epad_ind_i_1 = self._points_df.loc[i+1, 'a_epad_ind']
             except:
                 a_epad_ind_i_1 = -1 
-            temp = np.where((dpfield[a_epad_ind_i:a_epad_ind_i_1] >= 0.0) & (pfield[a_epad_ind_i:a_epad_ind_i_1] <= pfield[a_epad_ind_i:a_epad_ind_i_1].min() + 10.))
+            temp = np.where((dpfield[a_epad_ind_i:(i+1)*sim_len] >= 0.0) & (pfield[a_epad_ind_i:a_epad_ind_i_1] <= pfield[a_epad_ind_i:a_epad_ind_i_1].min() + 10.))
             try:
                 self._points_df['dia_ind'].values[i] = int(temp[0][0]) + a_epad_ind_i
             except:
