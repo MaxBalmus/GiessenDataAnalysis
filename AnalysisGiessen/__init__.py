@@ -340,7 +340,7 @@ class analyseGiessen:
             try:
                 temp, temp2 = find_peaks(dpfield_masked[edp_ind:sys_ind], height=height_dpdt, distance=distance)
             except:
-                temp, temp2 = 0.0, {'peak_heights', [0.,]}
+                temp, temp2 = 0.0, {'peak_heights': [0.,]}
             try:
                 self._points_df['epad_ind'].values[i] = int(temp[0]) + edp_ind
                 self._points_df['max_dpdt'].values[i] = temp2['peak_heights'][0]
