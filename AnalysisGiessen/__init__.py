@@ -331,7 +331,8 @@ class analyseGiessen:
         self._points_df['esp_ind']  = 0
         self._points_df['max_dpdt'] = 0
         
-        self._points_df.fillna(0, inplace=True)
+        self._points_df[['sys_ind', 'edp_ind', 'a_epad_ind']].fillna(0, inplace=True)
+        self._points_df[['sys'    , 'edp'    , 'a_epad    ']].fillna(pressure4sys[0], inplace=True)
         
         
         for i in range(len(self._points_df)):
