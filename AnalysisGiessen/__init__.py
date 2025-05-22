@@ -336,7 +336,11 @@ class analyseGiessen:
             edp_ind = self._points_df.loc[i, 'edp_ind']
             sys_ind = self._points_df.loc[i, 'sys_ind']
             
-            temp, temp2 = find_peaks(dpfield_masked[edp_ind:sys_ind], height=height_dpdt, distance=distance)
+            print(edp_ind, sys_ind)
+            try:
+                temp, temp2 = find_peaks(dpfield_masked[edp_ind:sys_ind], height=height_dpdt, distance=distance)
+            except:
+                temp, temp2 = 0.0, {'peak_heights', [0.,]}
             try:
                 self._points_df['epad_ind'].values[i] = int(temp[0]) + edp_ind
                 self._points_df['max_dpdt'].values[i] = temp2['peak_heights'][0]
@@ -345,21 +349,30 @@ class analyseGiessen:
                 self._points_df['max_dpdt'].values[i] = 0.0
             
             a_epad_ind_i   = self._points_df.loc[i, 'a_epad_ind']
-            temp = np.where((dpfield_masked[a_epad_ind_i:(i+1)*sim_len] >= -1e-6) & (pfield[a_epad_ind_i:(i+1)*sim_len] <= pfield[a_epad_ind_i:(i+1)*sim_len].min() + 10.))
+            try:
+                temp = np.where((dpfield_masked[a_epad_ind_i:(i+1)*sim_len] >= -1e-6) & (pfield[a_epad_ind_i:(i+1)*sim_len] <= pfield[a_epad_ind_i:(i+1)*sim_len].min() + 10.))
+            except:
+                temp = [[0,],]
             try:
                 self._points_df['dia_ind'].values[i] = int(temp[0][0]) + a_epad_ind_i
             except:
                 self._points_df['dia_ind'].values[i] = a_epad_ind_i
                 
             epad_ind = self._points_df.loc[i, 'epad_ind']
-            temp, temp2 = find_peaks(-d2pfield[epad_ind:sys_ind], height=height_d2pdt2)
+            try:
+                temp, _ = find_peaks(-d2pfield[epad_ind:sys_ind], height=height_d2pdt2)
+            except:
+                temp = [0,]
             try:
                 self._points_df['eivc_ind'].values[i] = int(temp[0]) + epad_ind
             except:
                 self._points_df['eivc_ind'].values[i] = epad_ind
                 
             a_epad_ind = self._points_df.loc[i,'a_epad_ind']
-            temp, temp2 = find_peaks(-d2pfield[sys_ind:a_epad_ind], height=height_d2pdt2)
+            try:
+                temp, _ = find_peaks(-d2pfield[sys_ind:a_epad_ind], height=height_d2pdt2)
+            except:
+                temp = [0,]
             try:
                 self._points_df['esp_ind'].values[i] = int(temp[0]) + sys_ind
             except:
