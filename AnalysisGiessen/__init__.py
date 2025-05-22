@@ -331,12 +331,13 @@ class analyseGiessen:
         self._points_df['esp_ind']  = 0
         self._points_df['max_dpdt'] = 0
         
+        self._points_df.fillna(0, inplace=True)
+        
         
         for i in range(len(self._points_df)):
             edp_ind = self._points_df.loc[i, 'edp_ind']
             sys_ind = self._points_df.loc[i, 'sys_ind']
             
-            print(edp_ind, sys_ind)
             try:
                 temp, temp2 = find_peaks(dpfield_masked[edp_ind:sys_ind], height=height_dpdt, distance=distance)
             except:
