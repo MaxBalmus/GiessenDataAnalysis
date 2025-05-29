@@ -45,6 +45,8 @@ class analyseGiessen:
         self._sigma_filter_pressure = 6.
         self._sigma_filter_dpdt = 4
         self._sigma_filter_d2pdt2 = 2
+        
+        self._filter_flags = None
         return
     
     @property
@@ -300,6 +302,14 @@ class analyseGiessen:
         
         return
     
+    def filter_points_df(self, iHR_threshold=150, EF_threshold=0.1):
+        flags = self._points_df['iHR'] < iHR_threshold
+        self._filter_flags = flags.copy()
+        
+        flags = self._points_df['EF'] > EF_threshold
+        self._filter_flags = self._filter_flags & flags
+        return
+    
     def compute_points_of_interest_2(self, height=40, height_dpdt=100, height_d2pdt2=1000, distance=90, sim_len=100, mask=None):
         pressure4sys = self._df['fcPressure'].copy()
         
@@ -521,12 +531,10 @@ class analyseGiessen:
         flag = self._points_df.query('dia_ind >= @start & dia_ind <= @finish').index
         # raise Exception(flag)
         # raise Exception((self._points_df['dia_ind'] >= start) & (self._points_df['dia_ind'] <= finish))
-        ax[0].plot(self._points_df.loc[flag, 'dia'],  label='dia')
-        ax[0].plot(self._points_df.loc[flag, 'sys'],  label='sys')
-        ax[0].plot(self._points_df.loc[flag, 'epad'], label='epad')
-        ax[0].plot(self._points_df.loc[flag, 'esp'],  label='esp')
-        ax[0].plot(self._points_df.loc[flag, 'edp'],  label='edp')
-        ax[0].plot(self._points_df.loc[flag, 'eivc'], label='eivc')
+        for col in ['dia', 'sys', 'epad', 'esp', 'edp', 'eivc']:
+            ax[0].plot(self._points_df.loc[flag, col],  label=col)
+            if self._filter_flags is not None : ax[0].plot(self._points_df.index[self._filter_flags], self._points_df.loc[flag, col].loc[self._filter_flags], 'ok')
+
         ax[0].set_xlim([0, len(flag)-1])
         ax[0].set_ylabel('Pressure [mmHg]')
         ax[0].set_xlabel('Heart beat index')
@@ -534,6 +542,7 @@ class analyseGiessen:
         ax[0].legend()
         
         ax[1].plot(self._points_df.loc[flag,'EF'], label='EF')        
+        if self._filter_flags is not None : ax[1].plot(self._points_df.index[self._filter_flags], self._points_df.loc[flag, 'EF'].loc[self._filter_flags], 'ok')
         ax[1].set_xlim([0, len(flag)-1])
         ax[1].set_ylabel('Ejection fraction')
         ax[1].set_xlabel('Heart beat index')
@@ -541,6 +550,7 @@ class analyseGiessen:
         ax[1].legend()
         
         ax[2].plot(self._points_df.loc[flag,'tau'], label='tau')
+        if self._filter_flags is not None : ax[2].plot(self._points_df.index[self._filter_flags], self._points_df.loc[flag, 'tau'].loc[self._filter_flags], 'ok')
         ax[2].set_xlim([0, len(flag)-1])
         ax[2].set_ylabel('ms')
         ax[2].set_xlabel('Heart beat index')
@@ -548,6 +558,7 @@ class analyseGiessen:
         ax[2].legend()
         
         ax[3].plot(self._points_df.loc[flag,'iT'], label='iT')
+        if self._filter_flags is not None : ax[3].plot(self._points_df.index[self._filter_flags], self._points_df.loc[flag, 'iT'].loc[self._filter_flags], 'ok')
         ax[3].set_xlim([0, len(flag)-1])
         ax[3].set_ylabel('Pulse duration [s]')
         ax[3].set_xlabel('Heart beat index')
@@ -571,4 +582,5 @@ class analyseGiessen:
         for i, indx in enumerate(ind_array[:-1]):
             ind1, ind2 = indx, ind_array[i+1]
             pulses[i,:] = np.interp(np.linspace(0, ind2-ind1, num=101), np.linspace(0, ind2-ind1, ind2-ind1), self._df['fcPressure'].iloc[ind1:ind2])
+        if self._filter_flags is not None: pulses = pulses[self._filter_flags[:-1],:]
         return pulses
