@@ -518,8 +518,8 @@ class analyseGiessen:
         ax[6].grid(axis='x')
 
         fig.tight_layout()
-        plt.show()
-        return
+        # plt.show()
+        return (fig, ax)
     
     
     
@@ -570,8 +570,8 @@ class analyseGiessen:
         ax[3].legend()
         
         fig.tight_layout()
-        plt.show()
-        return
+        # plt.show()
+        return (fig, ax)
     
     def resample_heart_beat(self):
         if self.start_at_edp:
