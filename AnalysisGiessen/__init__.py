@@ -447,10 +447,12 @@ class analyseGiessen:
         fig, ax = plt.subplots(figsize=(20,21), nrows=7)
 
         ax[0].grid(axis='x')
-        ax[0].plot(self._df.index[start:finish], self._df['cPressure'].iloc[start:finish] , label='Compensated', linewidth=4)
-        ax[0].plot(self._df.index[start:finish], self._df['fcPressure'].iloc[start:finish], label='c. filtered', linewidth=4, linestyle='-.')
+        if non_filter :  ax[0].plot(self._df.index[start:finish], self._df['cPressure'].iloc[start:finish] , label='Compensated', linewidth=4)
+        ax[0].plot(self._df.index[start:finish], self._df['fcPressure'].iloc[start:finish], label='c. filtered', linewidth=4, linestyle='-')
         ax[0].set_ylabel('Pressure [mmHg]')
-        ax[0].legend()
+        ax[0].set_xlim([self._df.index[start], self._df.index[finish]])
+        if non_filter : ax[0].legend()
+        ax[0].tick_params(axis='x',labelbottom=False)
         
         if plot_features:
             for a_epad, epad, dia, sys, esp, edp, eivc in zip(a_epad_ind, epad_ind, dia_ind, sys_ind, esp_ind, edp_ind, eivc_ind):
@@ -469,7 +471,9 @@ class analyseGiessen:
         ax[1].plot(self._df.index[start:finish], self._df['Noise'].iloc[start:finish], label='Noise', linewidth=4, linestyle='-')
         ax[1].plot(self._df.index[start:finish], self._df['cNoise'].iloc[start:finish], label='cNoise', linewidth=4, linestyle='-')
         ax[1].set_ylabel('Pressure [mmHg]')
-        ax[1].legend()
+        ax[1].set_xlim([self._df.index[start], self._df.index[finish]])
+        ax[1].tick_params(axis='x', labelbottom=False)
+        if non_filter :ax[1].legend()
         
         self._df['Compensation']  = self._df['cPressure']  - self._df['Pressure']
         self._df['fCompensation'] = self._df['fcPressure'] - self._df['fPressure']
@@ -477,13 +481,17 @@ class analyseGiessen:
         ax[2].grid(axis='x')
         ax[2].plot(self._df.index[start:finish], self._df['Compensation'].iloc[start:finish] , label='Compensation', linewidth=4, linestyle='-')
         ax[2].plot(self._df.index[start:finish], self._df['fCompensation'].iloc[start:finish],label='Filtered compensation', linewidth=4, linestyle='-')
-        ax[2].legend()
+        ax[2].set_xlim([self._df.index[start], self._df.index[finish]])
+        ax[2].tick_params(axis='x', labelbottom=False)
+        if non_filter : ax[2].legend()
         
         ax[3].grid(axis='x')
         ax[3].plot(self._df.index[start:finish], self._df['fdpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='-')
         if non_filter :  ax[3].plot(self._df.index[start:finish], self._df['dpdt'].iloc[start:finish] , label='$\\frac{dp}{dt}$', linewidth=4, linestyle='--')
         ax[3].set_ylabel('$mmHg/s$')
-        ax[3].legend()
+        ax[3].set_xlim([self._df.index[start], self._df.index[finish]])
+        ax[3].tick_params(axis='x',labelbottom=False)
+        if non_filter : ax[3].legend()
 
         if plot_features:
             for a_epad, epad, dia, sys in zip(a_epad_ind, epad_ind, dia_ind, sys_ind):
@@ -497,7 +505,7 @@ class analyseGiessen:
         ax[4].plot(self._df.index[start:finish], self._df['fd2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='-')
         if non_filter : ax[4].plot(self._df.index[start:finish], self._df['d2pdt2'].iloc[start:finish] , label='$\\frac{d^2p}{dt^2}$', linewidth=4, linestyle='--')
         ax[4].set_ylabel('$mmHg/s^2$')
-        ax[4].legend()
+        if non_filter : ax[4].legend()
         
         if plot_features:
             for sys, a_epad, esp, edp, eivc in zip(sys_ind, a_epad_ind, esp_ind, edp_ind, eivc_ind):
@@ -505,17 +513,21 @@ class analyseGiessen:
                 ax[4].axvline(self._df.index[esp],    color='r',                                   linewidth=1, linestyle='-')
                 ax[4].axvline(self._df.index[edp],    color='g',                                   linewidth=1, linestyle='-')
                 ax[4].axvline(self._df.index[eivc],   color='m',                                   linewidth=1, linestyle='-')
-                
+        ax[4].set_xlim([self._df.index[start], self._df.index[finish]])
+        ax[4].tick_params(axis='x', labelbottom=False)
         self._df['Acc'] = (self._df['ACC x [centi g]']**2.0 + self._df['ACC y [centi g]']**2.0 + self._df['ACC z [centi g]']**2.0) ** 0.5 / 100.
         
         ax[5].plot(self._df.index[start:finish], self._df['Acc'].iloc[start:finish], label='Acceleration')
         ax[5].grid(axis='x')
         ax[5].set_ylabel('Acc [G]')
+        ax[5].set_xlim([self._df.index[start], self._df.index[finish]])
+        ax[5].tick_params(axis='x', labelbottom=False)
         
         ax[6].plot(self._df.index[start:finish], self._df['Temperature'].iloc[start:finish], label='Temp.')
         ax[6].set_ylabel('Temp. [$^oC$]')
         ax[6].set_xlabel('Time [H:M:S]')
         ax[6].grid(axis='x')
+        ax[6].set_xlim([self._df.index[start], self._df.index[finish]])
 
         fig.tight_layout()
         # plt.show()
