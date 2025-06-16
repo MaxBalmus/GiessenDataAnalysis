@@ -342,7 +342,7 @@ class analyseGiessen:
         self._points_df['dia_ind']  = 0
         self._points_df['eivc_ind'] = 0
         self._points_df['esp_ind']  = 0
-        self._points_df['max_dpdt'] = 0
+        self._points_df['max_dpdt'] = 0.
         
         for i in range(len(self._points_df)):
             edp_ind = self._points_df.loc[i, 'edp_ind']
