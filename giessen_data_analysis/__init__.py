@@ -1,3 +1,17 @@
+"""
+Giessen Data Analysis
+====================
+
+Code for basic analysis of the Giessen RV pulmonary pressure trace data.
+"""
+
+__version__ = "0.1.0"
+__author__ = "Maximilian Balmus"
+__email__ = "mbalmus@turing.ac.uk"
+
+# Export the main class for easy importing
+__all__ = ["analyseGiessen"]
+
 import numpy  as np 
 import pandas as pd
 from   scipy.ndimage import gaussian_filter1d
@@ -23,7 +37,7 @@ class analyseGiessen:
             
             self._df['Pressure'] = self._df['Druck [dezi mmHg]'] / 10.
             self._df['cPressure'] = self._df['Druck kompensiert [dezi mmHg]'] / 10.
-            self._df['Temperature'] = self.df['Sondentemperatur [dezi °C]'] / 10.
+            self._df['Temperature'] = self._df['Sondentemperatur [dezi °C]'] / 10.
             
             self._df.drop(['Druck [dezi mmHg]', 'Druck kompensiert [dezi mmHg]'], axis=1, inplace=True)
             
@@ -101,7 +115,7 @@ class analyseGiessen:
         
         return
         
-    def report_error_percentate(self):
+    def report_error_percentage(self):
         print(f"Percentage error: {self._df['Error'].sum() / len(self._df) * 100.:.2f}%")
         return
     
